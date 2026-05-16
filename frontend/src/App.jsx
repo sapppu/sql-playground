@@ -15,6 +15,11 @@ const SAMPLE_QUERIES = [
   { label: "Insert a row", sql: "INSERT INTO employees (name, department, salary, active)\nVALUES ('Zara', 'Engineering', 92000, true)" },
   { label: "Update salary", sql: "UPDATE employees SET salary = 99000 WHERE name = 'Alice'" },
   { label: "Delete inactive", sql: "DELETE FROM employees WHERE active = false" },
+  { label: "Create index", sql: "CREATE INDEX idx_salary ON employees (salary)" },
+  { label: "Index lookup", sql: "SELECT * FROM employees WHERE salary = 95000" },
+  { label: "Inner join", sql: "SELECT employees.name, departments.name, departments.budget\nFROM employees\nJOIN departments ON employees.department = departments.name" },
+  { label: "Left join", sql: "SELECT employees.name, departments.budget\nFROM employees\nLEFT JOIN departments ON employees.department = departments.name" },
+  { label: "Analyze table", sql: "ANALYZE employees" },
 ];
 
 const OP_COLORS = {
@@ -22,6 +27,12 @@ const OP_COLORS = {
   LIMIT: "#ec4899", PROJECT: "#3b82f6", HASH_AGG: "#8b5cf6",
   INSERT: "#10b981", CREATE: "#10b981", DROP: "#ef4444",
   DELETE: "#ef4444", UPDATE: "#f59e0b", UNKNOWN: "#6b7280",
+  INDEX_SCAN: "#06b6d4", ANALYZE: "#a855f7",
+  NESTED_LOOP_JOIN: "#14b8a6", HASH_JOIN: "#14b8a6",
+};
+
+const WAL_OP_COLORS = {
+  INSERT: "#10b981", DELETE: "#ef4444", UPDATE: "#f59e0b",
 };
 
 const TOKEN_COLORS = {
@@ -31,6 +42,7 @@ const TOKEN_COLORS = {
   DELETE: "#c084fc", UPDATE: "#c084fc", SET: "#c084fc", ORDER: "#c084fc",
   BY: "#c084fc", ASC: "#c084fc", DESC: "#c084fc", LIMIT: "#c084fc",
   JOIN: "#c084fc", GROUP: "#c084fc", DISTINCT: "#c084fc", AS: "#c084fc",
+  INDEX: "#c084fc", ON: "#c084fc", ANALYZE: "#c084fc",
   IDENTIFIER: "#67e8f9", STRING_LITERAL: "#86efac", NUMBER_LITERAL: "#fcd34d",
   STAR: "#f9a8d4", EQUALS: "#f9a8d4", LT: "#f9a8d4", GT: "#f9a8d4",
   LTE: "#f9a8d4", GTE: "#f9a8d4", NOT_EQUALS: "#f9a8d4",
@@ -149,7 +161,7 @@ function ResultGrid({ columns, rows }) {
   );
 }
 
-function SchemaPanel({ schema, onTableClick }) {
+function SchemaPanel({ schema, onTableClick, indexedColumns }) {
   const [expanded, setExpanded] = useState({});
   return (
     <div style={{ height: "100%", overflowY: "auto" }}>
@@ -173,23 +185,27 @@ function SchemaPanel({ schema, onTableClick }) {
           </div>
           {expanded[table.name] && (
             <div style={{ paddingLeft: 16, paddingBottom: 4 }}>
-              {table.columns.map(col => (
-                <div key={col.name}
-                  onClick={() => onTableClick(`SELECT * FROM ${table.name}`)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 6,
-                    padding: "4px 8px", borderRadius: 4, cursor: "pointer",
-                    fontSize: 12, color: "#94a3b8",
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}
-                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                >
-                  {col.primaryKey && <span style={{ color: "#f59e0b", fontSize: 10 }}>PK</span>}
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", color: "#cbd5e1" }}>{col.name}</span>
-                  <span style={{ marginLeft: "auto", color: "#475569", fontSize: 11 }}>{col.type}</span>
-                  {col.notNull && <span style={{ color: "#6366f1", fontSize: 10 }}>NN</span>}
-                </div>
-              ))}
+              {table.columns.map(col => {
+                const isIndexed = indexedColumns.has(table.name.toLowerCase() + "." + col.name.toLowerCase());
+                return (
+                  <div key={col.name}
+                    onClick={() => onTableClick(`SELECT * FROM ${table.name}`)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 6,
+                      padding: "4px 8px", borderRadius: 4, cursor: "pointer",
+                      fontSize: 12, color: "#94a3b8",
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                  >
+                    {col.primaryKey && <span style={{ color: "#f59e0b", fontSize: 10 }}>PK</span>}
+                    {isIndexed && <span style={{ color: "#06b6d4", fontSize: 10 }} title="Indexed">⚡</span>}
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", color: "#cbd5e1" }}>{col.name}</span>
+                    <span style={{ marginLeft: "auto", color: "#475569", fontSize: 11 }}>{col.type}</span>
+                    {col.notNull && <span style={{ color: "#6366f1", fontSize: 10 }}>NN</span>}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -234,7 +250,7 @@ function SqlEditor({ value, onChange, onRun, loading }) {
               transition: "background .15s",
             }}
           >
-            {loading ? "Running…" : "▶ Run"}
+            {loading ? "Running\u2026" : "\u25B6 Run"}
           </button>
         </div>
       </div>
@@ -264,6 +280,15 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("results");
   const [backendDown, setBackendDown] = useState(false);
+  const [walLog, setWalLog] = useState([]);
+  const [indexedColumns, setIndexedColumns] = useState(new Set());
+  const [sessionId] = useState(() => "sess_" + Math.random().toString(36).substring(2, 10));
+  const [txnInfo, setTxnInfo] = useState({ activeTxn: null });
+
+  const getHeaders = useCallback(() => ({
+    "Content-Type": "application/json",
+    "X-Session-Id": sessionId,
+  }), [sessionId]);
 
   const loadSchema = useCallback(async () => {
     try {
@@ -274,7 +299,33 @@ export default function App() {
     } catch { setBackendDown(true); }
   }, []);
 
-  useEffect(() => { loadSchema(); }, [loadSchema]);
+  const loadIndexes = useCallback(async () => {
+    try {
+      const r = await fetch(`${API}/indexes`);
+      const d = await r.json();
+      setIndexedColumns(new Set(d.indexes || []));
+    } catch {}
+  }, []);
+
+  const loadWal = useCallback(async () => {
+    try {
+      const r = await fetch(`${API}/wal`);
+      const d = await r.json();
+      setWalLog(d || []);
+    } catch {}
+  }, []);
+
+  const loadTxnInfo = useCallback(async () => {
+    try {
+      const r = await fetch(`${API}/transactions`);
+      const d = await r.json();
+      const sessions = d.activeSessions || {};
+      const activeTxn = sessions[sessionId] || null;
+      setTxnInfo({ activeTxn });
+    } catch {}
+  }, [sessionId]);
+
+  useEffect(() => { loadSchema(); loadIndexes(); loadTxnInfo(); }, [loadSchema, loadIndexes, loadTxnInfo]);
 
   const runQuery = async () => {
     if (!sql.trim()) return;
@@ -282,15 +333,38 @@ export default function App() {
     try {
       const r = await fetch(`${API}/query`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getHeaders(),
         body: JSON.stringify({ sql: sql.trim() }),
       });
       const d = await r.json();
       setResult(d);
-      if (d.success) { await loadSchema(); setActiveTab("results"); }
-      else setActiveTab("results");
+      if (d.success) {
+        await loadSchema();
+        await loadIndexes();
+        await loadWal();
+        await loadTxnInfo();
+        setActiveTab("results");
+      }
     } catch (e) {
       setResult({ success: false, error: "Cannot reach backend. Is it running on :8081?", columns: [], rows: [], tokens: [] });
+    }
+    setLoading(false);
+  };
+
+  const runTransactionCmd = async (cmd) => {
+    setLoading(true);
+    try {
+      const r = await fetch(`${API}/query`, {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({ sql: cmd }),
+      });
+      const d = await r.json();
+      setResult(d);
+      await loadTxnInfo();
+      setActiveTab("results");
+    } catch (e) {
+      setResult({ success: false, error: String(e), columns: [], rows: [], tokens: [] });
     }
     setLoading(false);
   };
@@ -298,10 +372,22 @@ export default function App() {
   const resetSchema = async () => {
     await fetch(`${API}/schema/reset`, { method: "POST" });
     await loadSchema();
+    await loadIndexes();
+    await loadTxnInfo();
+    setWalLog([]);
     setResult(null);
   };
 
-  const TABS = ["results", "plan", "tokens"];
+  const analyzeAll = async () => {
+    setLoading(true);
+    try {
+      await fetch(`${API}/stats/analyze-all`, { method: "POST" });
+      setResult({ success: true, message: "All tables analyzed", columns: [], rows: [], elapsedMs: 0 });
+    } catch {}
+    setLoading(false);
+  };
+
+  const TABS = ["results", "plan", "tokens", "wal"];
 
   return (
     <div style={{
@@ -326,11 +412,62 @@ export default function App() {
             ⚠ Backend offline — run: mvn spring-boot:run
           </span>
         )}
+        <button onClick={analyzeAll} style={{
+          fontSize: 12, color: "#a855f7", background: "rgba(168,85,247,0.1)",
+          border: "1px solid rgba(168,85,247,0.3)", borderRadius: 6,
+          padding: "4px 12px", cursor: "pointer",
+        }}>Analyze All</button>
         <button onClick={resetSchema} style={{
           fontSize: 12, color: "#64748b", background: "transparent",
           border: "1px solid rgba(255,255,255,0.08)", borderRadius: 6,
           padding: "4px 12px", cursor: "pointer",
         }}>Reset data</button>
+      </div>
+
+      {/* Transaction status bar */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 8,
+        padding: "4px 16px", flexShrink: 0,
+        background: txnInfo.activeTxn ? "rgba(245,158,11,0.08)" : "transparent",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+      }}>
+        <span style={{
+          fontSize: 11, fontWeight: 600,
+          color: txnInfo.activeTxn ? "#f59e0b" : "#475569",
+        }}>
+          {txnInfo.activeTxn ? `TXN #${txnInfo.activeTxn} active` : "Auto-commit"}
+        </span>
+        <div style={{ flex: 1 }} />
+        <button
+          onClick={() => runTransactionCmd("BEGIN")}
+          disabled={loading || txnInfo.activeTxn}
+          style={{
+            fontSize: 11, padding: "2px 10px", borderRadius: 4, cursor: txnInfo.activeTxn ? "not-allowed" : "pointer",
+            background: txnInfo.activeTxn ? "rgba(255,255,255,0.04)" : "rgba(16,185,129,0.15)",
+            border: `1px solid ${txnInfo.activeTxn ? "rgba(255,255,255,0.07)" : "rgba(16,185,129,0.3)"}`,
+            color: txnInfo.activeTxn ? "#475569" : "#86efac",
+          }}
+        >BEGIN</button>
+        <button
+          onClick={() => runTransactionCmd("COMMIT")}
+          disabled={loading || !txnInfo.activeTxn}
+          style={{
+            fontSize: 11, padding: "2px 10px", borderRadius: 4, cursor: txnInfo.activeTxn ? "pointer" : "not-allowed",
+            background: txnInfo.activeTxn ? "rgba(59,130,246,0.15)" : "rgba(255,255,255,0.04)",
+            border: `1px solid ${txnInfo.activeTxn ? "rgba(59,130,246,0.3)" : "rgba(255,255,255,0.07)"}`,
+            color: txnInfo.activeTxn ? "#93c5fd" : "#475569",
+          }}
+        >COMMIT</button>
+        <button
+          onClick={() => runTransactionCmd("ROLLBACK")}
+          disabled={loading || !txnInfo.activeTxn}
+          style={{
+            fontSize: 11, padding: "2px 10px", borderRadius: 4, cursor: txnInfo.activeTxn ? "pointer" : "not-allowed",
+            background: txnInfo.activeTxn ? "rgba(239,68,68,0.15)" : "rgba(255,255,255,0.04)",
+            border: `1px solid ${txnInfo.activeTxn ? "rgba(239,68,68,0.3)" : "rgba(255,255,255,0.07)"}`,
+            color: txnInfo.activeTxn ? "#fca5a5" : "#475569",
+          }}
+        >ROLLBACK</button>
       </div>
 
       {/* Main layout */}
@@ -345,7 +482,7 @@ export default function App() {
             <span style={{ fontSize: 11, fontWeight: 600, color: "#475569", letterSpacing: 1 }}>SCHEMA</span>
           </div>
           <div style={{ flex: 1, overflowY: "auto", padding: "6px 6px" }}>
-            <SchemaPanel schema={schema} onTableClick={q => { setSql(q); }} />
+            <SchemaPanel schema={schema} onTableClick={q => { setSql(q); }} indexedColumns={indexedColumns} />
           </div>
         </div>
 
@@ -397,7 +534,7 @@ export default function App() {
                   fontSize: 11, padding: "2px 8px", borderRadius: 4,
                   background: result.success ? "rgba(16,185,129,0.12)" : "rgba(239,68,68,0.12)",
                   color: result.success ? "#86efac" : "#fca5a5",
-                }}>{result.success ? "✓" : "✗"} {result.success ? result.message : "Error"}</span>
+                }}>{result.success ? "\u2713" : "\u2717"} {result.success ? result.message : "Error"}</span>
                 <span style={{ fontSize: 11, color: "#334155" }}>{result.elapsedMs}ms</span>
               </div>
             )}
@@ -423,7 +560,7 @@ export default function App() {
                   </div>
                 )}
                 {result.success && result.columns.length === 0 && (
-                  <div style={{ color: "#86efac", fontSize: 13, padding: "8px 0" }}>✓ {result.message}</div>
+                  <div style={{ color: "#86efac", fontSize: 13, padding: "8px 0" }}>{result.message}</div>
                 )}
                 {result.success && result.columns.length > 0 && (
                   <ResultGrid columns={result.columns} rows={result.rows} />
@@ -457,6 +594,52 @@ export default function App() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {result && activeTab === "wal" && (
+              <div>
+                <div style={{ fontSize: 11, color: "#475569", marginBottom: 12 }}>
+                  Write-Ahead Log — every mutation is recorded before execution.
+                </div>
+                {walLog.length === 0 ? (
+                  <div style={{ color: "#334155", fontSize: 13 }}>No WAL entries yet. Run an INSERT, UPDATE, or DELETE.</div>
+                ) : (
+                  <div style={{ overflowX: "auto", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, fontFamily: "'JetBrains Mono', monospace" }}>
+                      <thead>
+                        <tr style={{ background: "rgba(99,102,241,0.15)" }}>
+                          <th style={{ padding: "8px 12px", textAlign: "right", color: "#a5b4fc", fontWeight: 600, borderBottom: "1px solid rgba(255,255,255,0.08)", width: 50 }}>Seq</th>
+                          <th style={{ padding: "8px 12px", textAlign: "left", color: "#a5b4fc", fontWeight: 600, borderBottom: "1px solid rgba(255,255,255,0.08)", width: 80 }}>Op</th>
+                          <th style={{ padding: "8px 12px", textAlign: "left", color: "#a5b4fc", fontWeight: 600, borderBottom: "1px solid rgba(255,255,255,0.08)", width: 120 }}>Table</th>
+                          <th style={{ padding: "8px 12px", textAlign: "left", color: "#a5b4fc", fontWeight: 600, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>Payload</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {walLog.map((entry, i) => (
+                          <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                            onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
+                            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                          >
+                            <td style={{ padding: "7px 12px", textAlign: "right", color: "#64748b" }}>{entry.sequenceNumber}</td>
+                            <td style={{ padding: "7px 12px" }}>
+                              <span style={{
+                                color: WAL_OP_COLORS[entry.operation] || "#94a3b8",
+                                fontWeight: 700, fontSize: 11,
+                                background: (WAL_OP_COLORS[entry.operation] || "#94a3b8") + "22",
+                                padding: "2px 8px", borderRadius: 4,
+                              }}>{entry.operation}</span>
+                            </td>
+                            <td style={{ padding: "7px 12px", color: "#67e8f9" }}>{entry.tableName}</td>
+                            <td style={{ padding: "7px 12px", color: "#94a3b8", maxWidth: 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {JSON.stringify(entry.payload)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -49,6 +49,11 @@ public class Lexer {
         KEYWORDS.put("TEXT", TokenType.TEXT);
         KEYWORDS.put("TRUE", TokenType.TRUE);
         KEYWORDS.put("FALSE", TokenType.FALSE);
+        KEYWORDS.put("INDEX", TokenType.INDEX);
+        KEYWORDS.put("ANALYZE", TokenType.ANALYZE);
+        KEYWORDS.put("BEGIN", TokenType.BEGIN);
+        KEYWORDS.put("COMMIT", TokenType.COMMIT);
+        KEYWORDS.put("ROLLBACK", TokenType.ROLLBACK);
     }
 
     private final String input;

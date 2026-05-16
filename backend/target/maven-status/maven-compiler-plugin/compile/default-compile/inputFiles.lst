@@ -1,5 +1,10 @@
 /home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/storage/InMemoryDatabase.java
 /home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/DataSeeder.java
+/home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/index/BTreeNode.java
+/home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/mvcc/TransactionManager.java
+/home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/mvcc/RowVersion.java
+/home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/index/IndexManager.java
+/home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/stats/ColumnStats.java
 /home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/lexer/TokenType.java
 /home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/api/SqlController.java
 /home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/parser/Parser.java
@@ -7,7 +12,12 @@
 /home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/SqlPlaygroundApplication.java
 /home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/model/Table.java
 /home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/planner/QueryPlanner.java
+/home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/wal/WalEntry.java
+/home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/wal/WriteAheadLog.java
+/home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/stats/TableStats.java
 /home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/lexer/Token.java
 /home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/parser/AstNode.java
 /home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/executor/QueryResult.java
 /home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/executor/QueryExecutor.java
+/home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/stats/StatisticsManager.java
+/home/sappu/IdeaProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/index/BTreeIndex.java

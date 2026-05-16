@@ -7,8 +7,21 @@ public class AstNode {
 
     public enum NodeType {
         SELECT_STMT, INSERT_STMT, CREATE_TABLE_STMT, DROP_TABLE_STMT, DELETE_STMT, UPDATE_STMT,
+        CREATE_INDEX_STMT, DROP_INDEX_STMT,
+        ANALYZE_STMT,
+        BEGIN_STMT, COMMIT_STMT, ROLLBACK_STMT,
         COLUMN_REF, LITERAL, BINARY_EXPR, UNARY_EXPR, WILDCARD,
         TABLE_REF, ALIAS, ORDER_ITEM, COLUMN_DEF, FUNCTION_CALL
+    }
+
+    public static class BeginStatement extends AstNode {
+        public BeginStatement() { super(NodeType.BEGIN_STMT, "BEGIN", null); }
+    }
+    public static class CommitStatement extends AstNode {
+        public CommitStatement() { super(NodeType.COMMIT_STMT, "COMMIT", null); }
+    }
+    public static class RollbackStatement extends AstNode {
+        public RollbackStatement() { super(NodeType.ROLLBACK_STMT, "ROLLBACK", null); }
     }
 
     public final NodeType type;
@@ -27,6 +40,7 @@ public class AstNode {
         public final boolean distinct;
         public final List<AstNode> columns;
         public final AstNode from;
+        public final List<JoinClause> joins;
         public final AstNode where;
         public final List<AstNode> orderBy;
         public final List<AstNode> groupBy;
@@ -34,17 +48,31 @@ public class AstNode {
         public final Integer offset;
 
         public SelectStatement(boolean distinct, List<AstNode> columns, AstNode from,
+                               List<JoinClause> joins,
                                AstNode where, List<AstNode> orderBy, List<AstNode> groupBy,
                                Integer limit, Integer offset) {
             super(NodeType.SELECT_STMT, "SELECT", null);
             this.distinct = distinct;
             this.columns = columns;
             this.from = from;
+            this.joins = joins != null ? joins : new ArrayList<>();
             this.where = where;
             this.orderBy = orderBy;
             this.groupBy = groupBy;
             this.limit = limit;
             this.offset = offset;
+        }
+    }
+
+    public static class JoinClause {
+        public final String rightTable;
+        public final String joinType; // "INNER" or "LEFT"
+        public final AstNode onCondition;
+
+        public JoinClause(String rightTable, String joinType, AstNode onCondition) {
+            this.rightTable = rightTable;
+            this.joinType = joinType;
+            this.onCondition = onCondition;
         }
     }
 
@@ -102,6 +130,37 @@ public class AstNode {
             this.tableName = tableName;
             this.assignments = assignments;
             this.where = where;
+        }
+    }
+
+    public static class CreateIndexStatement extends AstNode {
+        public final String indexName;
+        public final String tableName;
+        public final String columnName;
+
+        public CreateIndexStatement(String indexName, String tableName, String columnName) {
+            super(NodeType.CREATE_INDEX_STMT, "CREATE INDEX", null);
+            this.indexName = indexName;
+            this.tableName = tableName;
+            this.columnName = columnName;
+        }
+    }
+
+    public static class DropIndexStatement extends AstNode {
+        public final String indexName;
+
+        public DropIndexStatement(String indexName) {
+            super(NodeType.DROP_INDEX_STMT, "DROP INDEX", null);
+            this.indexName = indexName;
+        }
+    }
+
+    public static class AnalyzeStatement extends AstNode {
+        public final String tableName;
+
+        public AnalyzeStatement(String tableName) {
+            super(NodeType.ANALYZE_STMT, "ANALYZE", null);
+            this.tableName = tableName;
         }
     }
 

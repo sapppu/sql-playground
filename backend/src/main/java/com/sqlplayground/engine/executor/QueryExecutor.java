@@ -1,8 +1,16 @@
 package com.sqlplayground.engine.executor;
 
+import com.sqlplayground.engine.index.BTreeIndex;
+import com.sqlplayground.engine.index.IndexManager;
+import com.sqlplayground.engine.mvcc.TransactionManager;
 import com.sqlplayground.engine.parser.AstNode;
+import com.sqlplayground.engine.stats.ColumnStats;
+import com.sqlplayground.engine.stats.StatisticsManager;
+import com.sqlplayground.engine.wal.WriteAheadLog;
 import com.sqlplayground.model.Table;
 import com.sqlplayground.storage.InMemoryDatabase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -11,39 +19,126 @@ import java.util.stream.Collectors;
 @Component
 public class QueryExecutor {
 
-    private final InMemoryDatabase db;
+    private static final Logger log = LoggerFactory.getLogger(QueryExecutor.class);
 
-    public QueryExecutor(InMemoryDatabase db) {
+    private final InMemoryDatabase db;
+    private final WriteAheadLog wal;
+    private final IndexManager indexManager;
+    private final TransactionManager txnManager;
+    private final StatisticsManager statisticsManager;
+
+    public QueryExecutor(InMemoryDatabase db, WriteAheadLog wal, IndexManager indexManager, TransactionManager txnManager, StatisticsManager statisticsManager) {
         this.db = db;
+        this.wal = wal;
+        this.indexManager = indexManager;
+        this.txnManager = txnManager;
+        this.statisticsManager = statisticsManager;
     }
 
     public QueryResult execute(AstNode ast) {
+        return execute(ast, null);
+    }
+    public QueryResult execute(AstNode ast, String sessionId) {
+        // Ensure tables have TransactionManager set for MVCC
+        for (Table t : db.getAllTables().values()) {
+            if (t.getTransactionManager() == null) {
+                t.setTransactionManager(txnManager);
+            }
+        }
         if (ast.type == AstNode.NodeType.SELECT_STMT)
-            return executeSelect((AstNode.SelectStatement) ast);
+            return executeSelect((AstNode.SelectStatement) ast, sessionId);
         if (ast.type == AstNode.NodeType.INSERT_STMT)
-            return executeInsert((AstNode.InsertStatement) ast);
+            return executeInsert((AstNode.InsertStatement) ast, sessionId);
         if (ast.type == AstNode.NodeType.CREATE_TABLE_STMT)
             return executeCreate((AstNode.CreateTableStatement) ast);
         if (ast.type == AstNode.NodeType.DROP_TABLE_STMT)
             return executeDrop((AstNode.DropTableStatement) ast);
         if (ast.type == AstNode.NodeType.DELETE_STMT)
-            return executeDelete((AstNode.DeleteStatement) ast);
+            return executeDelete((AstNode.DeleteStatement) ast, sessionId);
         if (ast.type == AstNode.NodeType.UPDATE_STMT)
-            return executeUpdate((AstNode.UpdateStatement) ast);
+            return executeUpdate((AstNode.UpdateStatement) ast, sessionId);
+        if (ast.type == AstNode.NodeType.CREATE_INDEX_STMT)
+            return executeCreateIndex((AstNode.CreateIndexStatement) ast);
+        if (ast.type == AstNode.NodeType.DROP_INDEX_STMT)
+            return executeDropIndex((AstNode.DropIndexStatement) ast);
+        if (ast.type == AstNode.NodeType.BEGIN_STMT) {
+            long txnId = txnManager.begin(sessionId != null ? sessionId : "default");
+            return new QueryResult(Collections.emptyList(), Collections.emptyList(), "Transaction #" + txnId + " started");
+        }
+        if (ast.type == AstNode.NodeType.COMMIT_STMT) {
+            long txnId = txnManager.commit(sessionId != null ? sessionId : "default");
+            return new QueryResult(Collections.emptyList(), Collections.emptyList(), "Transaction #" + txnId + " committed");
+        }
+        if (ast.type == AstNode.NodeType.ROLLBACK_STMT) {
+            long txnId = txnManager.rollback(sessionId != null ? sessionId : "default");
+            return new QueryResult(Collections.emptyList(), Collections.emptyList(), "Transaction #" + txnId + " rolled back");
+        }
+        if (ast.type == AstNode.NodeType.ANALYZE_STMT) {
+            AstNode.AnalyzeStatement stmt = (AstNode.AnalyzeStatement) ast;
+            Table table = db.getTable(stmt.tableName);
+            statisticsManager.analyze(stmt.tableName, table);
+            TableStatsSummary summary = summarizeStats(stmt.tableName);
+            return new QueryResult(summary.columns, summary.rows,
+                "Analyzed '" + stmt.tableName + "' — " + summary.columns.size() + " columns");
+        }
         throw new ExecutionException("Unknown statement type: " + ast.type);
     }
 
     // ---- SELECT ----
-    private QueryResult executeSelect(AstNode.SelectStatement stmt) {
+    private QueryResult executeSelect(AstNode.SelectStatement stmt, String sessionId) {
+        long txnId = txnManager.getCurrentTxn(sessionId);
         String tableName = resolveTableName(stmt.from);
         Table table = db.getTable(tableName);
 
-        List<Map<String, Object>> rows = new ArrayList<>(table.getRows());
+        List<Map<String, Object>> rows;
 
-        if (stmt.where != null)
-            rows = rows.stream()
-                .filter(r -> isTruthy(evalExpr(stmt.where, r)))
-                .collect(Collectors.toList());
+        // Try to use an index for simple equality WHERE clauses (only when no JOINs)
+        if (stmt.joins.isEmpty()) {
+            IndexLookupResult indexResult = tryIndexLookup(tableName, stmt.where);
+            if (indexResult != null) {
+                rows = new ArrayList<>(indexResult.rows);
+                if (stmt.where != null) {
+                    rows = rows.stream()
+                        .filter(r -> isTruthy(evalExpr(stmt.where, r)))
+                        .collect(Collectors.toList());
+                }
+            } else {
+                rows = new ArrayList<>(table.getRows(txnId));
+                if (stmt.where != null)
+                    rows = rows.stream()
+                        .filter(r -> isTruthy(evalExpr(stmt.where, r)))
+                        .collect(Collectors.toList());
+            }
+        } else {
+            // JOINs: start with base table rows (qualified column names)
+            rows = new ArrayList<>();
+            for (Map<String, Object> row : table.getRows(txnId)) {
+                Map<String, Object> qualified = new LinkedHashMap<>();
+                for (Map.Entry<String, Object> e : row.entrySet()) {
+                    qualified.put(tableName + "." + e.getKey(), e.getValue());
+                    qualified.put(e.getKey(), e.getValue()); // unqualified fallback
+                }
+                rows.add(qualified);
+            }
+
+            // Execute each JOIN
+            for (AstNode.JoinClause join : stmt.joins) {
+                Table rightTable = db.getTable(join.rightTable);
+                int rightSize = rightTable.getRows(txnId).size();
+
+                if (rightSize <= 200) {
+                    rows = nestedLoopJoin(rows, join.rightTable, rightTable, join.onCondition, join.joinType, txnId);
+                } else {
+                    rows = hashJoin(rows, join.rightTable, rightTable, join.onCondition, join.joinType, txnId);
+                }
+            }
+
+            // Apply WHERE after JOINs
+            if (stmt.where != null)
+                rows = rows.stream()
+                    .filter(r -> isTruthy(evalExpr(stmt.where, r)))
+                    .collect(Collectors.toList());
+        }
 
         if (!stmt.groupBy.isEmpty())
             rows = groupBy(rows, stmt.groupBy, stmt.columns);
@@ -57,13 +152,221 @@ public class QueryExecutor {
         if (stmt.limit != null)
             rows = rows.stream().limit(stmt.limit).collect(Collectors.toList());
 
-        List<String> colNames = resolveColumnNames(stmt.columns, table);
-        List<Map<String, Object>> projected = projectRows(rows, stmt.columns, table, colNames);
+        // For JOINs, resolve columns differently
+        List<String> colNames;
+        List<Map<String, Object>> projected;
+        if (!stmt.joins.isEmpty()) {
+            colNames = resolveJoinColumnNames(stmt.columns, rows);
+            projected = projectJoinRows(rows, stmt.columns, colNames);
+        } else {
+            colNames = resolveColumnNames(stmt.columns, table);
+            projected = projectRows(rows, stmt.columns, table, colNames);
+        }
 
         if (stmt.distinct)
             projected = distinct(projected);
 
         return new QueryResult(colNames, projected, projected.size() + " row(s) returned");
+    }
+
+    // ---- JOIN methods ----
+
+    private List<Map<String, Object>> nestedLoopJoin(List<Map<String, Object>> left,
+                                                       String rightTableName, Table rightTable,
+                                                       AstNode onCondition, String joinType,
+                                                       long txnId) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map<String, Object> lRow : left) {
+            boolean matched = false;
+            for (Map<String, Object> rRow : rightTable.getRows(txnId)) {
+                Map<String, Object> combined = new LinkedHashMap<>(lRow);
+                for (Map.Entry<String, Object> e : rRow.entrySet()) {
+                    combined.put(rightTableName + "." + e.getKey(), e.getValue());
+                    if (!combined.containsKey(e.getKey())) {
+                        combined.put(e.getKey(), e.getValue());
+                    }
+                }
+                if (isTruthy(evalExpr(onCondition, combined))) {
+                    result.add(combined);
+                    matched = true;
+                }
+            }
+            if (!matched && "LEFT".equals(joinType)) {
+                Map<String, Object> padded = new LinkedHashMap<>(lRow);
+                for (Table.Column col : rightTable.columns) {
+                    padded.put(rightTableName + "." + col.getName(), null);
+                }
+                result.add(padded);
+            }
+        }
+        return result;
+    }
+
+    private List<Map<String, Object>> hashJoin(List<Map<String, Object>> left,
+                                                 String rightTableName, Table rightTable,
+                                                 AstNode onCondition, String joinType,
+                                                 long txnId) {
+        // Extract join key columns from ON condition (expects table.col = table.col)
+        String rightKeyCol = null;
+        String leftKeyCol = null;
+        if (onCondition instanceof AstNode.BinaryExpr) {
+            AstNode.BinaryExpr be = (AstNode.BinaryExpr) onCondition;
+            if ("=".equals(be.operator)) {
+                if (be.left instanceof AstNode.ColumnRef && be.right instanceof AstNode.ColumnRef) {
+                    AstNode.ColumnRef leftRef = (AstNode.ColumnRef) be.left;
+                    AstNode.ColumnRef rightRef = (AstNode.ColumnRef) be.right;
+                    // Determine which is left table and which is right
+                    if (rightTableName.equalsIgnoreCase(rightRef.table)) {
+                        rightKeyCol = rightRef.column;
+                        leftKeyCol = leftRef.table != null ? leftRef.table + "." + leftRef.column : leftRef.column;
+                    } else if (rightTableName.equalsIgnoreCase(leftRef.table)) {
+                        rightKeyCol = leftRef.column;
+                        leftKeyCol = rightRef.table != null ? rightRef.table + "." + rightRef.column : rightRef.column;
+                    }
+                }
+            }
+        }
+
+        // Fallback to nested loop if we can't extract hash key
+        if (rightKeyCol == null) {
+            return nestedLoopJoin(left, rightTableName, rightTable, onCondition, joinType, txnId);
+        }
+
+        // Build hash map on right table
+        Map<String, List<Map<String, Object>>> hashMap = new LinkedHashMap<>();
+        for (Map<String, Object> rRow : rightTable.getRows(txnId)) {
+            Object keyVal = rRow.get(rightKeyCol);
+            String key = keyVal == null ? "__null__" : keyVal.toString().toLowerCase();
+            hashMap.computeIfAbsent(key, k -> new ArrayList<>()).add(rRow);
+        }
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map<String, Object> lRow : left) {
+            Object lKeyVal = lRow.get(leftKeyCol);
+            String lKey = lKeyVal == null ? "__null__" : lKeyVal.toString().toLowerCase();
+            List<Map<String, Object>> matches = hashMap.getOrDefault(lKey, Collections.emptyList());
+
+            if (!matches.isEmpty()) {
+                for (Map<String, Object> rRow : matches) {
+                    Map<String, Object> combined = new LinkedHashMap<>(lRow);
+                    for (Map.Entry<String, Object> e : rRow.entrySet()) {
+                        combined.put(rightTableName + "." + e.getKey(), e.getValue());
+                        if (!combined.containsKey(e.getKey())) {
+                            combined.put(e.getKey(), e.getValue());
+                        }
+                    }
+                    result.add(combined);
+                }
+            } else if ("LEFT".equals(joinType)) {
+                Map<String, Object> padded = new LinkedHashMap<>(lRow);
+                for (Table.Column col : rightTable.columns) {
+                    padded.put(rightTableName + "." + col.getName(), null);
+                }
+                result.add(padded);
+            }
+        }
+        return result;
+    }
+
+    private List<String> resolveJoinColumnNames(List<AstNode> cols, List<Map<String, Object>> rows) {
+        if (cols.size() == 1 && cols.get(0).type == AstNode.NodeType.WILDCARD) {
+            if (rows.isEmpty()) return Collections.emptyList();
+            // Return all unique keys preserving order, but skip unqualified duplicates
+            List<String> result = new ArrayList<>();
+            Set<String> seen = new HashSet<>();
+            for (String key : rows.get(0).keySet()) {
+                if (key.contains(".")) {
+                    result.add(key);
+                    seen.add(key);
+                }
+            }
+            // Also add unqualified keys not already present as qualified
+            for (String key : rows.get(0).keySet()) {
+                if (!key.contains(".") && !seen.contains(key)) {
+                    result.add(key);
+                }
+            }
+            return result;
+        }
+        return cols.stream().map(this::colLabel).collect(Collectors.toList());
+    }
+
+    private List<Map<String, Object>> projectJoinRows(List<Map<String, Object>> rows,
+                                                       List<AstNode> cols,
+                                                       List<String> labels) {
+        if (cols.size() == 1 && cols.get(0).type == AstNode.NodeType.WILDCARD) {
+            // Filter to only include the resolved column names
+            Set<String> labelSet = new LinkedHashSet<>(labels);
+            List<Map<String, Object>> result = new ArrayList<>();
+            for (Map<String, Object> row : rows) {
+                Map<String, Object> filtered = new LinkedHashMap<>();
+                for (String label : labelSet) {
+                    filtered.put(label, row.get(label));
+                }
+                result.add(filtered);
+            }
+            return result;
+        }
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map<String, Object> row : rows) {
+            Map<String, Object> projected = new LinkedHashMap<>();
+            for (int i = 0; i < cols.size(); i++) {
+                AstNode col = cols.get(i);
+                AstNode expr = (col instanceof AstNode.Alias)
+                    ? ((AstNode.Alias) col).inner
+                    : col;
+                projected.put(labels.get(i), evalExpr(expr, row));
+            }
+            result.add(projected);
+        }
+        return result;
+    }
+
+    /**
+     * Attempts to use an index for a simple equality WHERE clause.
+     * Returns the index-scanned rows if applicable, null otherwise.
+     */
+    @SuppressWarnings("unchecked")
+    private IndexLookupResult tryIndexLookup(String tableName, AstNode where) {
+        if (where == null) return null;
+        if (!(where instanceof AstNode.BinaryExpr)) return null;
+
+        AstNode.BinaryExpr be = (AstNode.BinaryExpr) where;
+
+        // Only handle simple equality: column = literal
+        if (!"=".equals(be.operator)) return null;
+
+        String columnName = null;
+        Object literalValue = null;
+
+        if (be.left instanceof AstNode.ColumnRef && be.right instanceof AstNode.Literal) {
+            columnName = ((AstNode.ColumnRef) be.left).column;
+            literalValue = ((AstNode.Literal) be.right).literalValue;
+        } else if (be.right instanceof AstNode.ColumnRef && be.left instanceof AstNode.Literal) {
+            columnName = ((AstNode.ColumnRef) be.right).column;
+            literalValue = ((AstNode.Literal) be.left).literalValue;
+        }
+
+        if (columnName == null || literalValue == null) return null;
+
+        Optional<BTreeIndex> idx = indexManager.getIndex(tableName, columnName);
+        if (idx.isEmpty()) return null;
+
+        if (literalValue instanceof Comparable) {
+            List<Map<String, Object>> results = idx.get().search((Comparable) literalValue);
+            return new IndexLookupResult(columnName, results);
+        }
+        return null;
+    }
+
+    private static class IndexLookupResult {
+        final String column;
+        final List<Map<String, Object>> rows;
+        IndexLookupResult(String column, List<Map<String, Object>> rows) {
+            this.column = column;
+            this.rows = rows;
+        }
     }
 
     private List<Map<String, Object>> groupBy(List<Map<String, Object>> rows,
@@ -170,7 +473,8 @@ public class QueryExecutor {
     }
 
     // ---- INSERT ----
-    private QueryResult executeInsert(AstNode.InsertStatement stmt) {
+    private QueryResult executeInsert(AstNode.InsertStatement stmt, String sessionId) {
+        long txnId = txnManager.getCurrentTxn(sessionId);
         Table table = db.getTable(stmt.tableName);
         int count = 0;
         for (List<AstNode> vals : stmt.valueSets) {
@@ -181,13 +485,15 @@ public class QueryExecutor {
                 for (int i = 0; i < table.columns.size() && i < vals.size(); i++)
                     row.put(table.columns.get(i).getName(), evalExpr(vals.get(i), Collections.emptyMap()));
             }
-            table.insertRow(row);
+            wal.append("INSERT", stmt.tableName, row);
+            table.insertRow(row, txnId);
             count++;
         }
+        indexManager.invalidate(stmt.tableName);
         return new QueryResult(Collections.emptyList(), Collections.emptyList(), count + " row(s) inserted");
     }
 
-    // ---- CREATE ----
+    // ---- CREATE TABLE ----
     private QueryResult executeCreate(AstNode.CreateTableStatement stmt) {
         List<Table.Column> cols = new ArrayList<>();
         for (AstNode.ColumnDef d : stmt.columnDefs)
@@ -197,32 +503,66 @@ public class QueryExecutor {
             "Table '" + stmt.tableName + "' created");
     }
 
-    // ---- DROP ----
+    // ---- DROP TABLE ----
     private QueryResult executeDrop(AstNode.DropTableStatement stmt) {
         db.dropTable(stmt.tableName);
+        indexManager.invalidate(stmt.tableName);
         return new QueryResult(Collections.emptyList(), Collections.emptyList(),
             "Table '" + stmt.tableName + "' dropped");
     }
 
-    // ---- DELETE ----
-    private QueryResult executeDelete(AstNode.DeleteStatement stmt) {
+    // ---- CREATE INDEX ----
+    private QueryResult executeCreateIndex(AstNode.CreateIndexStatement stmt) {
         Table table = db.getTable(stmt.tableName);
+        indexManager.createIndex(stmt.indexName, stmt.tableName, stmt.columnName, table);
+        return new QueryResult(Collections.emptyList(), Collections.emptyList(),
+            "Index '" + stmt.indexName + "' created on " + stmt.tableName + "(" + stmt.columnName + ")");
+    }
+
+    // ---- DROP INDEX ----
+    private QueryResult executeDropIndex(AstNode.DropIndexStatement stmt) {
+        indexManager.dropIndex(stmt.indexName);
+        return new QueryResult(Collections.emptyList(), Collections.emptyList(),
+            "Index '" + stmt.indexName + "' dropped");
+    }
+
+    // ---- DELETE ----
+    private QueryResult executeDelete(AstNode.DeleteStatement stmt, String sessionId) {
+        long txnId = txnManager.getCurrentTxn(sessionId);
+        Table table = db.getTable(stmt.tableName);
+        // Collect matching rows before deletion for WAL logging
+        List<Map<String, Object>> toDelete = new ArrayList<>();
+        for (Map<String, Object> row : table.getRows(txnId)) {
+            if (stmt.where == null || isTruthy(evalExpr(stmt.where, row))) {
+                toDelete.add(new LinkedHashMap<>(row));
+            }
+        }
+        for (Map<String, Object> row : toDelete) {
+            wal.append("DELETE", stmt.tableName, row);
+        }
         int deleted = table.deleteRows(
-            row -> stmt.where == null || isTruthy(evalExpr(stmt.where, row))
+            row -> stmt.where == null || isTruthy(evalExpr(stmt.where, row)),
+            txnId
         );
+        indexManager.invalidate(stmt.tableName);
         return new QueryResult(Collections.emptyList(), Collections.emptyList(), deleted + " row(s) deleted");
     }
 
     // ---- UPDATE ----
-    private QueryResult executeUpdate(AstNode.UpdateStatement stmt) {
+    private QueryResult executeUpdate(AstNode.UpdateStatement stmt, String sessionId) {
+        long txnId = txnManager.getCurrentTxn(sessionId);
         Table table = db.getTable(stmt.tableName);
         int updated = table.updateRows(
             row -> stmt.where == null || isTruthy(evalExpr(stmt.where, row)),
             row -> {
                 for (AstNode.Assignment a : stmt.assignments)
                     row.put(a.column, evalExpr(a.value, row));
-            }
+                // Log the updated row (post-mutation values)
+                wal.append("UPDATE", stmt.tableName, new LinkedHashMap<>(row));
+            },
+            txnId
         );
+        indexManager.invalidate(stmt.tableName);
         return new QueryResult(Collections.emptyList(), Collections.emptyList(), updated + " row(s) updated");
     }
 
@@ -336,6 +676,42 @@ public class QueryExecutor {
         if (from == null) throw new ExecutionException("No FROM clause");
         if (from.type == AstNode.NodeType.ALIAS) return resolveTableName(from.children.get(0));
         return from.value;
+    }
+
+    private TableStatsSummary summarizeStats(String tableName) {
+        var statsOpt = statisticsManager.getStats(tableName);
+        List<String> cols = new ArrayList<>();
+        List<Map<String, Object>> rows = new ArrayList<>();
+
+        if (statsOpt.isPresent()) {
+            var tableStats = statsOpt.get();
+            cols.add("column");
+            cols.add("ndv");
+            cols.add("min");
+            cols.add("max");
+            cols.add("row_count");
+            for (var entry : tableStats.columns.entrySet()) {
+                ColumnStats cs = entry.getValue();
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("column", cs.columnName);
+                row.put("ndv", cs.ndv);
+                row.put("min", cs.minValue);
+                row.put("max", cs.maxValue);
+                row.put("row_count", cs.rowCount);
+                rows.add(row);
+            }
+        }
+
+        return new TableStatsSummary(cols, rows);
+    }
+
+    private static class TableStatsSummary {
+        final List<String> columns;
+        final List<Map<String, Object>> rows;
+        TableStatsSummary(List<String> columns, List<Map<String, Object>> rows) {
+            this.columns = columns;
+            this.rows = rows;
+        }
     }
 
     public static class ExecutionException extends RuntimeException {

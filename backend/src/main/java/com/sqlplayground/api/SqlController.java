@@ -2,11 +2,16 @@ package com.sqlplayground.api;
 
 import com.sqlplayground.engine.executor.QueryExecutor;
 import com.sqlplayground.engine.executor.QueryResult;
+import com.sqlplayground.engine.index.IndexManager;
 import com.sqlplayground.engine.lexer.Lexer;
 import com.sqlplayground.engine.lexer.Token;
+import com.sqlplayground.engine.mvcc.TransactionManager;
 import com.sqlplayground.engine.parser.AstNode;
 import com.sqlplayground.engine.parser.Parser;
 import com.sqlplayground.engine.planner.QueryPlanner;
+import com.sqlplayground.engine.stats.StatisticsManager;
+import com.sqlplayground.engine.wal.WalEntry;
+import com.sqlplayground.engine.wal.WriteAheadLog;
 import com.sqlplayground.model.Table;
 import com.sqlplayground.storage.InMemoryDatabase;
 import org.springframework.http.ResponseEntity;
@@ -23,22 +28,35 @@ public class SqlController {
     private final InMemoryDatabase db;
     private final QueryExecutor executor;
     private final QueryPlanner planner;
+    private final WriteAheadLog wal;
+    private final IndexManager indexManager;
+    private final TransactionManager txnManager;
+    private final StatisticsManager statisticsManager;
 
-    public SqlController(InMemoryDatabase db, QueryExecutor executor, QueryPlanner planner) {
+    public SqlController(InMemoryDatabase db, QueryExecutor executor,
+                         QueryPlanner planner, WriteAheadLog wal,
+                         IndexManager indexManager, TransactionManager txnManager,
+                         StatisticsManager statisticsManager) {
         this.db = db;
         this.executor = executor;
         this.planner = planner;
+        this.wal = wal;
+        this.indexManager = indexManager;
+        this.txnManager = txnManager;
+        this.statisticsManager = statisticsManager;
     }
 
     @PostMapping("/query")
-    public ResponseEntity<Map<String, Object>> executeQuery(@RequestBody Map<String, String> req) {
+    public ResponseEntity<Map<String, Object>> executeQuery(
+            @RequestBody Map<String, String> req,
+            @RequestHeader(value = "X-Session-Id", required = false) String sessionId) {
         String sql = req.get("sql");
         long start = System.currentTimeMillis();
         try {
             List<Token> tokens = new Lexer(sql).tokenize();
             AstNode ast = new Parser(tokens).parse();
             QueryPlanner.PlanNode plan = planner.plan(ast);
-            QueryResult result = executor.execute(ast);
+            QueryResult result = executor.execute(ast, sessionId);
             long elapsed = System.currentTimeMillis() - start;
 
             Map<String, Object> response = new LinkedHashMap<>();
@@ -96,8 +114,44 @@ public class SqlController {
     public ResponseEntity<Map<String, String>> resetSchema() {
         new ArrayList<>(db.getAllTables().keySet()).forEach(db::dropTable);
         db.seedSampleData();
+        wal.clear();
+        txnManager.clear();
         Map<String, String> response = new LinkedHashMap<>();
         response.put("message", "Schema reset to sample data");
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/wal")
+    public ResponseEntity<List<WalEntry>> getWal() {
+        return ResponseEntity.ok(wal.getLog());
+    }
+
+    @GetMapping("/indexes")
+    public ResponseEntity<Map<String, Object>> getIndexes() {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("indexes", indexManager.getIndexKeys());
+        response.put("namedIndexes", indexManager.getNamedIndexes());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/transactions")
+    public ResponseEntity<Map<String, Object>> getTransactions() {
+        return ResponseEntity.ok(txnManager.getSummary());
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getStats() {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("stats", statisticsManager.getAllStats());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/stats/analyze-all")
+    public ResponseEntity<Map<String, Object>> analyzeAll() {
+        statisticsManager.analyzeAll(db);
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("message", "All tables analyzed");
+        response.put("stats", statisticsManager.getAllStats());
         return ResponseEntity.ok(response);
     }
 
@@ -126,3 +180,4 @@ public class SqlController {
         return map;
     }
 }
+

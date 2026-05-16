@@ -47,6 +47,10 @@ public class Parser {
         if (tt == TokenType.DROP)   return parseDrop();
         if (tt == TokenType.DELETE) return parseDelete();
         if (tt == TokenType.UPDATE) return parseUpdate();
+        if (tt == TokenType.ANALYZE)  return parseAnalyze();
+        if (tt == TokenType.BEGIN)    { consume(); return new AstNode.BeginStatement(); }
+        if (tt == TokenType.COMMIT)   { consume(); return new AstNode.CommitStatement(); }
+        if (tt == TokenType.ROLLBACK) { consume(); return new AstNode.RollbackStatement(); }
         throw new ParseException("Unexpected token: " + peek().value);
     }
 
@@ -58,6 +62,26 @@ public class Parser {
         List<AstNode> columns = parseSelectColumns();
         expect(TokenType.FROM);
         AstNode from = parseTableRef();
+
+        // Parse JOIN clauses
+        List<AstNode.JoinClause> joins = new ArrayList<>();
+        while (check(TokenType.JOIN) || check(TokenType.INNER) || check(TokenType.LEFT)) {
+            String joinType = "INNER";
+            if (check(TokenType.LEFT)) {
+                consume();
+                joinType = "LEFT";
+                match(TokenType.JOIN); // optional JOIN after LEFT
+            } else if (check(TokenType.INNER)) {
+                consume();
+                expect(TokenType.JOIN);
+            } else {
+                consume(); // consume JOIN
+            }
+            String rightTable = expect(TokenType.IDENTIFIER).value;
+            expect(TokenType.ON);
+            AstNode onCondition = parseExpression();
+            joins.add(new AstNode.JoinClause(rightTable, joinType, onCondition));
+        }
 
         AstNode where = null;
         if (match(TokenType.WHERE)) where = parseExpression();
@@ -82,7 +106,7 @@ public class Parser {
         if (match(TokenType.LIMIT))  limit  = Integer.parseInt(expect(TokenType.NUMBER_LITERAL).value);
         if (match(TokenType.OFFSET)) offset = Integer.parseInt(expect(TokenType.NUMBER_LITERAL).value);
 
-        return new AstNode.SelectStatement(distinct, columns, from, where, orderBy, groupBy, limit, offset);
+        return new AstNode.SelectStatement(distinct, columns, from, joins, where, orderBy, groupBy, limit, offset);
     }
 
     private List<AstNode> parseSelectColumns() {
@@ -154,9 +178,12 @@ public class Parser {
         return vals;
     }
 
-    // ---- CREATE ----
+    // ---- CREATE (TABLE or INDEX) ----
     private AstNode parseCreate() {
         expect(TokenType.CREATE);
+        if (check(TokenType.INDEX)) {
+            return parseCreateIndex();
+        }
         expect(TokenType.TABLE);
         String table = expect(TokenType.IDENTIFIER).value;
         expect(TokenType.LPAREN);
@@ -165,6 +192,17 @@ public class Parser {
         while (match(TokenType.COMMA)) defs.add(parseColumnDef());
         expect(TokenType.RPAREN);
         return new AstNode.CreateTableStatement(table, defs);
+    }
+
+    private AstNode parseCreateIndex() {
+        expect(TokenType.INDEX);
+        String indexName = expect(TokenType.IDENTIFIER).value;
+        expect(TokenType.ON);
+        String tableName = expect(TokenType.IDENTIFIER).value;
+        expect(TokenType.LPAREN);
+        String columnName = expect(TokenType.IDENTIFIER).value;
+        expect(TokenType.RPAREN);
+        return new AstNode.CreateIndexStatement(indexName, tableName, columnName);
     }
 
     private AstNode.ColumnDef parseColumnDef() {
@@ -181,9 +219,20 @@ public class Parser {
         return new AstNode.ColumnDef(name, type, pk, notNull);
     }
 
-    // ---- DROP ----
+    // ---- ANALYZE ----
+    private AstNode parseAnalyze() {
+        expect(TokenType.ANALYZE);
+        String tableName = expect(TokenType.IDENTIFIER).value;
+        return new AstNode.AnalyzeStatement(tableName);
+    }
+
+    // ---- DROP (TABLE or INDEX) ----
     private AstNode parseDrop() {
         expect(TokenType.DROP);
+        if (check(TokenType.INDEX)) {
+            consume();
+            return new AstNode.DropIndexStatement(expect(TokenType.IDENTIFIER).value);
+        }
         expect(TokenType.TABLE);
         return new AstNode.DropTableStatement(expect(TokenType.IDENTIFIER).value);
     }
