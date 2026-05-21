@@ -35,19 +35,31 @@ public class Table {
 
     public List<Map<String, Object>> getRows(long readerTxnId) {
         if (readerTxnId == 0 || txnManager == null) {
-            return Collections.unmodifiableList(rows);
+            // Auto-commit mode — include plain rows (auto-commit inserts) +
+            // latest non-deleted committed version from each chain
+            List<Map<String, Object>> result = new ArrayList<>(rows);
+            for (List<RowVersion> chain : versionChains) {
+                for (int i = chain.size() - 1; i >= 0; i--) {
+                    RowVersion rv = chain.get(i);
+                    if (txnManager != null && txnManager.isRolledBack(rv.createdByTxn)) continue;
+                    if (!rv.deleted) { result.add(rv.data); break; }
+                }
+            }
+            return Collections.unmodifiableList(result);
         }
-        // MVCC: filter through version chains
-        List<Map<String, Object>> visible = new ArrayList<>();
+
+        // MVCC read — use visibility rules
+        List<Map<String, Object>> result = new ArrayList<>();
         for (List<RowVersion> chain : versionChains) {
-            for (RowVersion rv : chain) {
-                if (txnManager.isVisible(rv, readerTxnId) && !rv.deleted) {
-                    visible.add(rv.data);
+            for (int i = chain.size() - 1; i >= 0; i--) {
+                RowVersion rv = chain.get(i);
+                if (txnManager.isVisible(rv, readerTxnId)) {
+                    result.add(rv.data);
                     break;
                 }
             }
         }
-        return visible;
+        return Collections.unmodifiableList(result);
     }
 
     public void insertRow(Map<String, Object> row) {
@@ -77,20 +89,32 @@ public class Table {
 
     public int deleteRows(Predicate<Map<String, Object>> predicate, long txnId) {
         if (txnId == 0 || txnManager == null) {
-            int before = rows.size();
-            rows.removeIf(predicate);
-            return before - rows.size();
+            // Auto-commit: remove from both rows and versionChains
+            int count1 = 0;
+            Iterator<Map<String, Object>> it = rows.iterator();
+            while (it.hasNext()) {
+                if (predicate.test(it.next())) {
+                    it.remove();
+                    count1++;
+                }
+            }
+            int before = versionChains.size();
+            versionChains.removeIf(chain -> {
+                RowVersion latest = chain.get(chain.size() - 1);
+                return !latest.deleted && predicate.test(latest.data);
+            });
+            return count1 + (before - versionChains.size());
         }
-        // MVCC: mark matching versions as deleted
+
+        // MVCC: logical delete — mark deletedByTxn instead of removing
         int count = 0;
         for (List<RowVersion> chain : versionChains) {
-            for (RowVersion rv : chain) {
-                if (predicate.test(rv.data) && rv.deletedByTxn == 0) {
-                    rv.deleted = true;
-                    rv.deletedByTxn = txnId;
-                    count++;
-                    break;
-                }
+            RowVersion latest = chain.get(chain.size() - 1);
+            if (!latest.deleted && txnManager.isVisible(latest, txnId)
+                    && predicate.test(latest.data)) {
+                latest.deleted = true;
+                latest.deletedByTxn = txnId;
+                count++;
             }
         }
         return count;
@@ -104,31 +128,20 @@ public class Table {
     public int updateRows(Predicate<Map<String, Object>> predicate,
                           Consumer<Map<String, Object>> updater,
                           long txnId) {
-        if (txnId == 0 || txnManager == null) {
-            int count = 0;
-            for (Map<String, Object> row : rows) {
-                if (predicate.test(row)) {
-                    updater.accept(row);
-                    count++;
-                }
-            }
-            return count;
-        }
-        // MVCC: create new version for each matched row, mark old as deleted
         int count = 0;
+        // Also update plain rows (auto-commit data)
+        for (Map<String, Object> row : rows) {
+            if (predicate.test(row)) {
+                updater.accept(row);
+                count++;
+            }
+        }
+        // Update version chains
         for (List<RowVersion> chain : versionChains) {
-            for (int i = 0; i < chain.size(); i++) {
-                RowVersion rv = chain.get(i);
-                if (predicate.test(rv.data) && rv.deletedByTxn == 0) {
-                    Map<String, Object> newData = new LinkedHashMap<>(rv.data);
-                    updater.accept(newData);
-                    rv.deleted = true;
-                    rv.deletedByTxn = txnId;
-                    RowVersion newRv = new RowVersion(txnId, newData);
-                    chain.add(newRv);
-                    count++;
-                    break;
-                }
+            RowVersion latest = chain.get(chain.size() - 1);
+            if (!latest.deleted && predicate.test(latest.data)) {
+                updater.accept(latest.data);
+                count++;
             }
         }
         return count;

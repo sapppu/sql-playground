@@ -1,0 +1,41 @@
+[ {
+  "username" : "frank",
+  "hashedPassword" : "$2a$10$KSvqUS.HtMhA6dFG8t7J0.j1q.B8VhGLwyWX2W.aZzZFgjoMHxyOe",
+  "createdAt" : 1779193973074
+}, {
+  "username" : "dave",
+  "hashedPassword" : "$2a$10$zEujETa/qvp7wb5ufa5OZOE7Aii.u0MK/hmk5Q/fYxJC2tRuDfhiW",
+  "createdAt" : 1779193958745
+}, {
+  "username" : "bob",
+  "hashedPassword" : "$2a$10$Wf2gnYcJwkB1YFJUeMG3yesNs9nLJPr1dMuJynaZOyMfAQqpiSlT6",
+  "createdAt" : 1779193944333
+}, {
+  "username" : "sappu",
+  "hashedPassword" : "$2a$10$/rguTlnUGzxhotCyKZV.2eExVGOzklG.6eSILhi5hrL/gRzNI2eBe",
+  "createdAt" : 1779095677755
+}, {
+  "username" : "eve",
+  "hashedPassword" : "$2a$10$lSLwscHgoa0GgoouJ82s.OaBzHO4cH9tgbC9WdUA7lPrRQIjMvVpa",
+  "createdAt" : 1779193966978
+}, {
+  "username" : "hank",
+  "hashedPassword" : "$2a$10$PgguKhN9OJSSMcq5dzZ.mednr3tpbWZGHdA8AzrHjojPVtDmwk.lG",
+  "createdAt" : 1779193985624
+}, {
+  "username" : "grace",
+  "hashedPassword" : "$2a$10$nJcWgqg1BeW7Qm8VmCPLMO3AfHalpk/0AbYe58VJYIb6CrSxhTmva",
+  "createdAt" : 1779193978405
+}, {
+  "username" : "final",
+  "hashedPassword" : "$2a$10$xLzX/th6as8uAleeQGTkz.k1Sc/FFnBkRfNpWMytEyAH.a9DggIlO",
+  "createdAt" : 1779194006674
+}, {
+  "username" : "alice",
+  "hashedPassword" : "$2a$10$OogPHzKqiqXr8mxE7a1V1enBtFkjfB8v6INjUBBJ4k4YaluR1MblO",
+  "createdAt" : 1779193944451
+}, {
+  "username" : "charlie",
+  "hashedPassword" : "$2a$10$OjR7SN/9iqVRbuz2ZXU2r.DWFMwRAXu77bX5DRkl9GdqGHFkGbrV6",
+  "createdAt" : 1779193952120
+} ]

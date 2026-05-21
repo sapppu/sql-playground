@@ -1,0 +1,1 @@
+{"timestamp":1779193944481,"sql":"SELECT * FROM employees","success":true,"message":"8 row(s) returned","rowCount":8,"elapsedMs":4}

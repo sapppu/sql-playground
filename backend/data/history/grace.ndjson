@@ -1,0 +1,1 @@
+{"timestamp":1779193978421,"sql":"SELECT employees.name, departments.budget FROM employees JOIN departments ON employees.department = departments.name","success":true,"message":"0 row(s) returned","rowCount":0,"elapsedMs":1}

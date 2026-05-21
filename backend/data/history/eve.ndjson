@@ -1,0 +1,1 @@
+{"timestamp":1779193966996,"sql":"SELECT * FROM employees WHERE salary > 80000 ORDER BY salary DESC","success":true,"message":"4 row(s) returned","rowCount":4,"elapsedMs":2}

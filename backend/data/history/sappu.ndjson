@@ -1,0 +1,25 @@
+{"timestamp":1779095695117,"sql":"SELECT * FROM employees ORDER BY salary DESC","success":true,"message":"8 row(s) returned","rowCount":8,"elapsedMs":5}
+{"timestamp":1779096658277,"sql":"BEGIN","success":true,"message":"Transaction #1 started","rowCount":0,"elapsedMs":4}
+{"timestamp":1779096663639,"sql":"COMMIT","success":true,"message":"Transaction #1 committed","rowCount":0,"elapsedMs":0}
+{"timestamp":1779096674508,"sql":"COMMIT","success":false,"message":"No active transaction for this session","rowCount":0,"elapsedMs":0}
+{"timestamp":1779096676302,"sql":"COMMIT","success":false,"message":"No active transaction for this session","rowCount":0,"elapsedMs":0}
+{"timestamp":1779096734184,"sql":"select * from products","success":true,"message":"5 row(s) returned","rowCount":5,"elapsedMs":1}
+{"timestamp":1779260640476,"sql":"SELECT employees.name, employees.salary, departments.budget\nFROM employees\nJOIN departments\n  ON employees.department = departments.name\nWHERE employees.salary > 80000","success":true,"message":"0 row(s) returned","rowCount":0,"elapsedMs":7}
+{"timestamp":1779260823588,"sql":"SELECT employees.name, employees.salary, departments.budget\nFROM employees\nJOIN departments\n  ON employees.department = departments.name\nWHERE employees.salary > 80000","success":true,"message":"0 row(s) returned","rowCount":0,"elapsedMs":7}
+{"timestamp":1779260844139,"sql":"BEGIN","success":true,"message":"Transaction #1 started","rowCount":0,"elapsedMs":0}
+{"timestamp":1779260850206,"sql":"COMMIT","success":true,"message":"Transaction #1 committed","rowCount":0,"elapsedMs":0}
+{"timestamp":1779261712052,"sql":"create table mobiles (mno int primary key,mname varchar(20), price double );","success":true,"message":"Table 'mobiles' created","rowCount":0,"elapsedMs":9}
+{"timestamp":1779261768903,"sql":"create table mobiles (mno int primary key,mname varchar(20), price double );\n\ninsert into mobiles(11,'iphone-13',60000.0)","success":false,"message":"Table already exists: mobiles","rowCount":0,"elapsedMs":0}
+{"timestamp":1779261784331,"sql":"create table mobiles (mno int primary key,mname varchar(20), price double );\n\ninsert into mobiles(11,'iphone-13',60000.0)","success":false,"message":"Table already exists: mobiles","rowCount":0,"elapsedMs":0}
+{"timestamp":1779261791423,"sql":"insert into mobiles(11,'iphone-13',60000.0)","success":false,"message":"Expected IDENTIFIER but got NUMBER_LITERAL ('11') at pos 20","rowCount":0,"elapsedMs":3}
+{"timestamp":1779261810697,"sql":"insert into mobiles values(11,'iphone-13',60000.0)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":4}
+{"timestamp":1779261815180,"sql":"BEGIN","success":true,"message":"Transaction #1 started","rowCount":0,"elapsedMs":0}
+{"timestamp":1779262764840,"sql":"create table mobiles (mno int primary key,mname varchar(20), price double );","success":true,"message":"Table 'mobiles' created","rowCount":0,"elapsedMs":8}
+{"timestamp":1779263002958,"sql":"BEGIN","success":true,"message":"Transaction #1 started","rowCount":0,"elapsedMs":4}
+{"timestamp":1779263005101,"sql":"COMMIT","success":true,"message":"Transaction #1 committed","rowCount":0,"elapsedMs":0}
+{"timestamp":1779263413521,"sql":"create table mobile (mno int primary key,mname varchar(20),price double)","success":true,"message":"Table 'mobile' created","rowCount":0,"elapsedMs":9}
+{"timestamp":1779263504733,"sql":"insert into mobile values(13.'IPhone-13',60000)","success":false,"message":"Expected RPAREN but got STRING_LITERAL ('IPhone-13') at pos 29","rowCount":0,"elapsedMs":6}
+{"timestamp":1779263519098,"sql":"insert into mobile values(13,'IPhone-13',60000)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":3}
+{"timestamp":1779263543137,"sql":"BEGIN","success":true,"message":"Transaction #1 started","rowCount":0,"elapsedMs":1}
+{"timestamp":1779263545447,"sql":"COMMIT","success":true,"message":"Transaction #1 committed","rowCount":0,"elapsedMs":0}
+{"timestamp":1779263604071,"sql":"SELECT * FROM mobile","success":true,"message":"1 row(s) returned","rowCount":1,"elapsedMs":5}

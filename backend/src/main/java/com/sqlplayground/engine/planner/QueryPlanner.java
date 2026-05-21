@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Component
 public class QueryPlanner {
 
-    private final InMemoryDatabase db;
+    private InMemoryDatabase db;
     private final IndexManager indexManager;
     private final StatisticsManager statisticsManager;
 
@@ -20,6 +20,16 @@ public class QueryPlanner {
         this.db = db;
         this.indexManager = indexManager;
         this.statisticsManager = statisticsManager;
+    }
+
+    public PlanNode planWith(AstNode ast, InMemoryDatabase userDb) {
+        InMemoryDatabase original = this.db;
+        this.db = userDb;
+        try {
+            return plan(ast);
+        } finally {
+            this.db = original;
+        }
     }
 
     public PlanNode plan(AstNode ast) {
@@ -100,24 +110,25 @@ public class QueryPlanner {
             node = new PlanNode("SEQ_SCAN", "Full table scan", Collections.emptyList(), scanStats);
         }
 
-        // JOIN plan nodes
+        // ---- JOIN plan nodes ----
         for (AstNode.JoinClause join : stmt.joins) {
-            int rightSize = db.tableExists(join.rightTable) ? db.getTable(join.rightTable).getRows().size() : 0;
-            String strategy = rightSize <= 200 ? "NESTED_LOOP_JOIN" : "HASH_JOIN";
+            int rightSize = db.tableExists(join.rightTable)
+                ? db.getTable(join.rightTable).getRows().size() : 0;
+
             Map<String, Object> joinStats = new LinkedHashMap<>();
-            joinStats.put("join_type", join.joinType);
-            joinStats.put("left_table", tableName);
+            joinStats.put("type", join.joinType);
             joinStats.put("right_table", join.rightTable);
-            joinStats.put("strategy", strategy);
             joinStats.put("right_rows", rightSize);
-            joinStats.put("est_rows", tableSize * Math.max(1, rightSize / 3));
+            joinStats.put("strategy", "nested_loop");
+            joinStats.put("on", describeExpr(join.onCondition));
 
-            PlanNode rightScan = new PlanNode("SEQ_SCAN", "Scan " + join.rightTable,
-                Collections.emptyList(), Map.of("table", join.rightTable, "rows", rightSize));
-
-            node = new PlanNode(strategy,
-                join.joinType + " JOIN " + join.rightTable + " on " + describeExpr(join.onCondition),
-                List.of(node, rightScan), joinStats);
+            node = new PlanNode(
+                join.joinType + "_JOIN",
+                join.joinType + " JOIN " + join.rightTable
+                    + " ON " + describeExpr(join.onCondition),
+                Collections.singletonList(node),
+                joinStats
+            );
         }
 
         // FILTER

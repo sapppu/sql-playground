@@ -1,0 +1,1 @@
+{"timestamp":1779193958762,"sql":"SELECT e.name, d.budget FROM employees e JOIN departments d ON e.department = d.name WHERE e.salary > 80000","success":false,"message":"Expected ON but got IDENTIFIER ('d') at pos 58","rowCount":0,"elapsedMs":0}

@@ -1,0 +1,1 @@
+{"timestamp":1779193985639,"sql":"CREATE INDEX idx_salary ON employees (salary)","success":true,"message":"Index 'idx_salary' created on employees(salary)","rowCount":0,"elapsedMs":1}

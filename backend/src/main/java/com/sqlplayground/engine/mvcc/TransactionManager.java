@@ -61,6 +61,20 @@ public class TransactionManager {
     }
 
     /**
+     * Check if a session has an active transaction.
+     */
+    public boolean hasActiveTxn(String sessionId) {
+        return sessionId != null && sessionTxns.containsKey(sessionId);
+    }
+
+    /**
+     * Get current txn ID for a session (alias for getCurrentTxn).
+     */
+    public long getCurrentTxnId(String sessionId) {
+        return getCurrentTxn(sessionId);
+    }
+
+    /**
      * Check if a transaction is active.
      */
     public boolean isActive(long txnId) {
@@ -68,19 +82,55 @@ public class TransactionManager {
     }
 
     /**
-     * Check if a row version is visible to a given reader transaction.
+     * A row version is visible to a reader if:
+     * 1. It was created by a committed transaction (or the reader's own txn)
+     * 2. It has NOT been deleted by a committed transaction
+     * 3. It was NOT created by a rolled-back transaction
      */
     public boolean isVisible(RowVersion rv, long readerTxnId) {
-        // Created by a committed transaction or by the current transaction
-        boolean createdVisible = rv.createdByTxn == readerTxnId
-            || "COMMITTED".equals(activeTxns.get(rv.createdByTxn));
+        // Row created by this reader's own transaction — always visible
+        if (rv.createdByTxn == readerTxnId) {
+            // But only if not deleted by self
+            return rv.deletedByTxn == 0 || rv.deletedByTxn == readerTxnId;
+        }
 
-        // Not deleted, or deleted by a rolled-back transaction, or deleted by a different active txn
-        boolean notDeleted = rv.deletedByTxn == 0
-            || "ROLLED_BACK".equals(activeTxns.get(rv.deletedByTxn))
-            || (rv.deletedByTxn != readerTxnId && isActive(rv.deletedByTxn));
+        // Row created by a rolled-back transaction — never visible
+        String creatorStatus = activeTxns.get(rv.createdByTxn);
+        if ("ROLLED_BACK".equals(creatorStatus)) {
+            return false;
+        }
 
-        return createdVisible && notDeleted;
+        // Row created by an active (uncommitted) transaction — not visible to others
+        if ("ACTIVE".equals(creatorStatus)) {
+            return false;
+        }
+
+        // Row created by a committed transaction — check if it was deleted
+        if (rv.deleted) {
+            // Deleted by this reader's own txn — not visible
+            if (rv.deletedByTxn == readerTxnId) return false;
+
+            // Deleted by a rolled-back txn — deletion doesn't count, row is visible
+            String deleterStatus = activeTxns.get(rv.deletedByTxn);
+            if ("ROLLED_BACK".equals(deleterStatus)) return true;
+
+            // Deleted by an active txn — deletion not yet committed, row still visible
+            if ("ACTIVE".equals(deleterStatus)) return true;
+
+            // Deleted by a committed txn — row is gone
+            return false;
+        }
+
+        // Created by committed txn, not deleted — visible
+        return true;
+    }
+
+    public boolean isRolledBack(long txnId) {
+        return "ROLLED_BACK".equals(activeTxns.get(txnId));
+    }
+
+    public boolean isCommitted(long txnId) {
+        return !activeTxns.containsKey(txnId) || "COMMITTED".equals(activeTxns.get(txnId));
     }
 
     /**
