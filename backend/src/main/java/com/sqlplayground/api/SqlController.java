@@ -9,6 +9,7 @@ import com.sqlplayground.engine.lexer.Token;
 import com.sqlplayground.engine.mvcc.TransactionManager;
 import com.sqlplayground.engine.parser.AstNode;
 import com.sqlplayground.engine.parser.Parser;
+import com.sqlplayground.engine.planner.PlanAnnotator;
 import com.sqlplayground.engine.planner.QueryPlanner;
 import com.sqlplayground.engine.stats.StatisticsManager;
 import com.sqlplayground.engine.wal.WalEntry;
@@ -82,6 +83,7 @@ public class SqlController {
             AstNode ast = new Parser(tokens).parse();
             QueryPlanner.PlanNode plan = planner.planWith(ast, userDb);
             QueryResult result = executor.executeFor(ast, sessionId, userDb, userWal);
+            PlanAnnotator.annotate(plan, executor.getAndClearLastProfile());
             long elapsed = System.currentTimeMillis() - start;
 
             historyStore.record(username, sql, true,
@@ -254,6 +256,7 @@ public class SqlController {
         map.put("operation",   node.getOperation());
         map.put("description", node.getDescription());
         map.put("stats",       node.getStats());
+        map.put("actualRows",  node.getActualRows());
         List<Map<String, Object>> children = new ArrayList<>();
         for (QueryPlanner.PlanNode child : node.getChildren())
             children.add(serializePlan(child));

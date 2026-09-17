@@ -115,11 +115,14 @@ public class QueryPlanner {
         PlanNode node;
         if (indexScan != null) {
             // INDEX_SCAN
+            int estRows = Math.max(1, tableSize / 8);
             Map<String, Object> scanStats = new LinkedHashMap<>();
             scanStats.put("table", tableName);
             scanStats.put("index", tableName + "." + indexScan.columnName);
             scanStats.put("lookup_key", indexScan.lookupValue);
-            scanStats.put("est_rows", Math.max(1, tableSize / 8));
+            scanStats.put("est_rows", estRows);
+            scanStats.put("estimatedRows", estRows);
+            scanStats.put("selectivity", format4((double) estRows / Math.max(tableSize, 1)));
             scanStats.put("cost", (int) Math.ceil(Math.log(tableSize + 1) / Math.log(2)));
             node = new PlanNode("INDEX_SCAN", "B-Tree index lookup on " + indexScan.columnName,
                 Collections.emptyList(), scanStats);
@@ -128,6 +131,7 @@ public class QueryPlanner {
             Map<String, Object> scanStats = new LinkedHashMap<>();
             scanStats.put("table", tableName);
             scanStats.put("rows", tableSize);
+            scanStats.put("estimatedRows", tableSize);
             scanStats.put("cost", tableSize);
             node = new PlanNode("SEQ_SCAN", "Full table scan", Collections.emptyList(), scanStats);
         }
@@ -145,6 +149,10 @@ public class QueryPlanner {
             long buildRows = Math.min(leftEst, rightEst);
             // Build side is the smaller input; probe side is the larger one.
             boolean rightIsBuild = rightEst <= leftEst;
+            String buildName = rightIsBuild ? join.rightTable : leftName;
+            String probeName = rightIsBuild ? leftName : join.rightTable;
+            long probeRows = Math.max(leftEst, rightEst);
+            long outputEst = estimateJoinOutput(leftEst, rightEst, leftName, join);
 
             Map<String, Object> joinStats = new LinkedHashMap<>();
             joinStats.put("join_type", join.joinType);
@@ -152,9 +160,17 @@ public class QueryPlanner {
             joinStats.put("right_table", join.rightTable);
             joinStats.put("strategy", strategy);
             joinStats.put("estimated_rows", buildRows);
-            joinStats.put("build_table", rightIsBuild ? join.rightTable : leftName);
-            joinStats.put("probe_table", rightIsBuild ? leftName : join.rightTable);
+            joinStats.put("estimatedRows", outputEst);
+            joinStats.put("selectivity", format4((double) outputEst / Math.max(leftEst, 1)));
+            joinStats.put("build_table", buildName);
+            joinStats.put("probe_table", probeName);
             joinStats.put("on", describeExpr(join.onCondition));
+            joinStats.put("summary", "Chose " + operation + ": build side (" + buildName
+                + ", ~" + buildRows + " rows) "
+                + ("hash_join".equals(strategy)
+                    ? "fits " + HASH_JOIN_THRESHOLD + "-row threshold"
+                    : "below " + HASH_JOIN_THRESHOLD + "-row threshold")
+                + "; probe side (" + probeName + ", ~" + probeRows + " rows).");
 
             node = new PlanNode(
                 operation,
@@ -177,6 +193,7 @@ public class QueryPlanner {
             filterStats.put("condition", describeExpr(stmt.where));
             filterStats.put("selectivity", String.format("%.4f", selectivity));
             filterStats.put("est_rows", outRows);
+            filterStats.put("estimatedRows", outRows);
             filterStats.put("cost", inputRows);
             node = new PlanNode("FILTER", "WHERE " + describeExpr(stmt.where),
                 Collections.singletonList(node), filterStats);
@@ -208,10 +225,11 @@ public class QueryPlanner {
         }
 
         // LIMIT
-        if (stmt.limit != null) {
+        if (stmt.limit != null || stmt.offset != null) {
             Map<String, Object> limitStats = new LinkedHashMap<>();
             limitStats.put("limit", stmt.limit);
             limitStats.put("offset", stmt.offset != null ? stmt.offset : 0);
+            if (stmt.limit != null) limitStats.put("estimatedRows", stmt.limit);
             limitStats.put("cost", 1);
             node = new PlanNode("LIMIT", "Restrict output rows",
                 Collections.singletonList(node), limitStats);
@@ -230,8 +248,46 @@ public class QueryPlanner {
     }
 
     /**
-     * Check if the WHERE clause is a simple equality on an indexed column.
+     * Estimated join OUTPUT rows (as opposed to {@code estimated_rows},
+     * which sizes the build input). For equi-joins of two column refs we
+     * use the classic 1/max(ndv) selectivity, so the number moves with
+     * ANALYZE freshness; otherwise we fall back to 0.3 of the cross
+     * product, matching the codebase convention for unknown selectivity.
      */
+    private long estimateJoinOutput(long leftEst, long rightEst, String leftName, AstNode.JoinClause join) {
+        double sel = 0.3;
+        if (join.onCondition instanceof AstNode.BinaryExpr) {
+            AstNode.BinaryExpr be = (AstNode.BinaryExpr) join.onCondition;
+            if ("=".equals(be.operator)
+                    && be.left instanceof AstNode.ColumnRef
+                    && be.right instanceof AstNode.ColumnRef) {
+                long ndv = Math.max(
+                    columnNdv(resolveJoinSideTable(((AstNode.ColumnRef) be.left).table, leftName, join.rightTable),
+                        ((AstNode.ColumnRef) be.left).column),
+                    columnNdv(resolveJoinSideTable(((AstNode.ColumnRef) be.right).table, leftName, join.rightTable),
+                        ((AstNode.ColumnRef) be.right).column));
+                if (ndv > 0) sel = 1.0 / ndv;
+            }
+        }
+        return Math.max(1, Math.round(leftEst * (double) rightEst * sel));
+    }
+
+    private String resolveJoinSideTable(String qualifier, String leftName, String rightName) {
+        if (qualifier == null) return leftName;
+        if (qualifier.equalsIgnoreCase(rightName)) return rightName;
+        return leftName;
+    }
+
+    private long columnNdv(String tableName, String columnName) {
+        return statisticsManager.getStats(tableName)
+            .map(ts -> ts.getColumn(columnName))
+            .map(cs -> cs.ndv)
+            .orElse(0L);
+    }
+
+    private static String format4(double value) {
+        return String.format("%.4f", value);
+    }
     private IndexScanInfo checkIndexScan(String tableName, AstNode where) {
         if (where == null) return null;
         if (!(where instanceof AstNode.BinaryExpr)) return null;
@@ -339,6 +395,9 @@ public class QueryPlanner {
         private final String description;
         private final List<PlanNode> children;
         private final Map<String, Object> stats;
+        // Rows actually produced by this stage at execution time.
+        // Null until the controller annotates the plan post-execution.
+        private Integer actualRows;
 
         public PlanNode(String operation, String description,
                         List<PlanNode> children, Map<String, Object> stats) {
@@ -352,5 +411,7 @@ public class QueryPlanner {
         public String getDescription()    { return description; }
         public List<PlanNode> getChildren(){ return children; }
         public Map<String, Object> getStats(){ return stats; }
+        public Integer getActualRows()    { return actualRows; }
+        public void setActualRows(Integer actualRows) { this.actualRows = actualRows; }
     }
 }

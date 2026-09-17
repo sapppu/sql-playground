@@ -1,6 +1,7 @@
 com/sqlplayground/engine/RangeComparisonTest.class
-com/sqlplayground/engine/EngineTestBase.class
 com/sqlplayground/engine/JoinQualifierTest.class
+com/sqlplayground/engine/ExplainTransparencyTest.class
+com/sqlplayground/engine/EngineTestBase.class
 com/sqlplayground/engine/NotNullTest.class
 com/sqlplayground/engine/WriteAheadLogTest.class
 com/sqlplayground/engine/JoinStrategyTest.class

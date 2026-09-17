@@ -13,6 +13,7 @@
 /home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/index/BTreeNode.java
 /home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/wal/WriteAheadLog.java
 /home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/executor/QueryExecutor.java
+/home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/planner/PlanAnnotator.java
 /home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/main/java/com/sqlplayground/api/SqlController.java
 /home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/main/java/com/sqlplayground/DataSeeder.java
 /home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/main/java/com/sqlplayground/engine/planner/QueryPlanner.java

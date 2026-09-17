@@ -1,6 +1,7 @@
 com/sqlplayground/engine/parser/AstNode$InsertStatement.class
 com/sqlplayground/engine/lexer/TokenType.class
 com/sqlplayground/engine/parser/AstNode$DropIndexStatement.class
+com/sqlplayground/engine/planner/PlanAnnotator.class
 com/sqlplayground/engine/parser/AstNode$UpdateStatement.class
 com/sqlplayground/engine/parser/AstNode$BeginStatement.class
 com/sqlplayground/api/SqlController.class
@@ -24,6 +25,7 @@ com/sqlplayground/engine/index/BTreeIndex.class
 com/sqlplayground/engine/index/BTreeNode.class
 com/sqlplayground/engine/parser/AstNode$ColumnDef.class
 com/sqlplayground/engine/mvcc/TransactionManager.class
+com/sqlplayground/engine/executor/QueryExecutor$StageCount.class
 com/sqlplayground/engine/parser/Parser$ParseException.class
 com/sqlplayground/engine/wal/WriteAheadLog.class
 com/sqlplayground/engine/stats/ColumnStats.class

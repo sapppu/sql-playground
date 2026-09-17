@@ -33,6 +33,31 @@ public class QueryExecutor {
     // Thread-local per-user WAL — set during executeFor(), null otherwise
     private final ThreadLocal<UserWalRegistry.UserWal> activeUserWal = new ThreadLocal<>();
 
+    // Per-request execution profile: actual row counts per plan stage,
+    // picked up by the controller to annotate the plan. ThreadLocal
+    // because the executor is a shared singleton.
+    private final ThreadLocal<List<StageCount>> lastProfile = new ThreadLocal<>();
+
+    /** Actual rows produced by one execution stage, in execution order. */
+    public static class StageCount {
+        public final String operation;
+        public final int actualRows;
+        /** Join strategy actually used, or null for non-join stages. */
+        public final String strategy;
+        public StageCount(String operation, int actualRows, String strategy) {
+            this.operation = operation;
+            this.actualRows = actualRows;
+            this.strategy = strategy;
+        }
+    }
+
+    /** Drains the profile recorded by the most recent execute() on this thread. */
+    public List<StageCount> getAndClearLastProfile() {
+        List<StageCount> profile = lastProfile.get();
+        lastProfile.remove();
+        return profile != null ? profile : Collections.emptyList();
+    }
+
     public QueryExecutor(InMemoryDatabase db, WriteAheadLog wal, IndexManager indexManager, TransactionManager txnManager, StatisticsManager statisticsManager) {
         this.db = db;
         this.wal = wal;
@@ -84,6 +109,9 @@ public class QueryExecutor {
                 t.setTransactionManager(txnManager);
             }
         }
+        // Fresh profile per request so a non-SELECT never inherits
+        // a previous SELECT's stage counts on this thread.
+        lastProfile.set(new ArrayList<>());
         long txnId = txnManager.getCurrentTxnId(sessionId);
         if (ast.type == AstNode.NodeType.SELECT_STMT)
             return executeSelect((AstNode.SelectStatement) ast, txnId);
@@ -128,6 +156,7 @@ public class QueryExecutor {
     private QueryResult executeSelect(AstNode.SelectStatement stmt, long txnId) {
         String tableName = resolveTableName(stmt.from);
         Table table = db.getTable(tableName);
+        List<StageCount> profile = lastProfile.get();
 
         List<Map<String, Object>> rows = null;
         boolean whereCleared = false;
@@ -171,28 +200,39 @@ public class QueryExecutor {
         if (!usedIndex) {
             rows = new ArrayList<>(table.getRows(txnId));
         }
+        if (profile != null) profile.add(new StageCount(usedIndex ? "INDEX_SCAN" : "SEQ_SCAN", rows.size(), null));
 
-        if (stmt.where != null && !whereCleared)
+        if (stmt.where != null && !whereCleared) {
             rows = rows.stream()
                 .filter(r -> isTruthy(evalExpr(stmt.where, r)))
                 .collect(Collectors.toList());
+            if (profile != null) profile.add(new StageCount("FILTER", rows.size(), null));
+        }
 
         // ---- JOIN execution ----
         if (!stmt.joins.isEmpty()) {
-            rows = executeJoins(rows, stmt.joins, tableName, txnId);
+            rows = executeJoins(rows, stmt.joins, tableName, txnId, profile);
         }
 
-        if (!stmt.groupBy.isEmpty())
+        if (!stmt.groupBy.isEmpty()) {
             rows = groupBy(rows, stmt.groupBy, stmt.columns);
+            if (profile != null) profile.add(new StageCount("HASH_AGG", rows.size(), null));
+        }
 
-        if (!stmt.orderBy.isEmpty())
+        if (!stmt.orderBy.isEmpty()) {
             rows = sortRows(rows, stmt.orderBy);
+            if (profile != null) profile.add(new StageCount("SORT", rows.size(), null));
+        }
 
         if (stmt.offset != null)
             rows = rows.stream().skip(stmt.offset).collect(Collectors.toList());
 
-        if (stmt.limit != null)
+        if (stmt.limit != null) {
             rows = rows.stream().limit(stmt.limit).collect(Collectors.toList());
+            if (profile != null) profile.add(new StageCount("LIMIT", rows.size(), null));
+        } else if (stmt.offset != null) {
+            if (profile != null) profile.add(new StageCount("LIMIT", rows.size(), null));
+        }
 
         // For JOINs, resolve columns differently
         List<String> colNames;
@@ -207,6 +247,7 @@ public class QueryExecutor {
 
         if (stmt.distinct)
             projected = distinct(projected);
+        if (profile != null) profile.add(new StageCount("PROJECT", projected.size(), null));
 
         return new QueryResult(colNames, projected, projected.size() + " row(s) returned");
     }
@@ -221,55 +262,30 @@ public class QueryExecutor {
             List<Map<String, Object>> leftRows,
             List<AstNode.JoinClause> joins,
             String leftTableName,
-            long txnId) {
+            long txnId,
+            List<StageCount> profile) {
 
         List<Map<String, Object>> result = leftRows;
 
         for (AstNode.JoinClause join : joins) {
             String rightTableName = join.rightTable;
             Table rightTable = db.getTable(rightTableName);
-            List<Map<String, Object>> rightRows =
-                new ArrayList<>(rightTable.getRows(txnId));
 
             // Same rule as the planner: build side is the smaller input,
             // estimated from stats with actual-size fallback.
             long rightEst = statisticsManager.getStats(rightTableName)
-                .map(s -> s.rowCount).orElse((long) rightRows.size());
+                .map(s -> s.rowCount)
+                .orElse((long) rightTable.getRows(txnId).size());
             String strategy = QueryPlanner.chooseStrategy(result.size(), rightEst);
 
             if ("hash_join".equals(strategy)) {
                 result = hashJoin(result, rightTableName, rightTable,
                     join.onCondition, join.joinType, txnId);
-                continue;
+            } else {
+                result = nestedLoopJoin(result, rightTableName, rightTable,
+                    join.onCondition, join.joinType, txnId);
             }
-
-            List<Map<String, Object>> joined = new ArrayList<>();
-
-            for (Map<String, Object> leftRow : result) {
-                boolean matchFound = false;
-
-                for (Map<String, Object> rightRow : rightRows) {
-                    Map<String, Object> combined = mergeRows(
-                        leftRow, leftTableName,
-                        rightRow, rightTableName
-                    );
-
-                    if (isTruthy(evalExpr(join.onCondition, combined))) {
-                        joined.add(combined);
-                        matchFound = true;
-                    }
-                }
-
-                if (!matchFound && "LEFT".equals(join.joinType)) {
-                    Map<String, Object> combined = mergeRows(
-                        leftRow, leftTableName,
-                        nullRow(db.getTable(rightTableName)), rightTableName
-                    );
-                    joined.add(combined);
-                }
-            }
-
-            result = joined;
+            if (profile != null) profile.add(new StageCount("JOIN", result.size(), strategy));
         }
 
         return result;

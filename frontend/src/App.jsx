@@ -284,6 +284,21 @@ function PlanNodeDisplay({ node, depth = 0 }) {
   const isJoin = node.operation === "HASH_JOIN" || node.operation === "NESTED_LOOP_JOIN";
   const strategy = node.stats?.strategy;
   const statEntries = node.stats ? Object.entries(node.stats) : [];
+  // Curated keys get dedicated rows above; the generic dump shows the rest.
+  const restEntries = statEntries.filter(([k]) =>
+    !["estimatedRows", "est_rows", "estimated_rows", "selectivity", "summary", "cost"].includes(k));
+  const est = node.stats?.estimatedRows;
+  const act = node.actualRows;
+  const hasEstimate = Number.isFinite(est);
+  const hasActual = Number.isFinite(act);
+  let delta = null;
+  if (hasEstimate && hasActual) {
+    const relErr = Math.abs(est - act) / Math.max(act, 1);
+    const mult = Math.max(est, act) / Math.max(Math.min(est, act), 1);
+    if (relErr <= 0.25) delta = { label: "close", color: "var(--teal-ink)", border: "var(--teal)", bg: "var(--teal-wash)" };
+    else if (relErr <= 1.0) delta = { label: "fair", color: "var(--ink-3)", border: "var(--line-strong)", bg: "var(--bg-inset)" };
+    else delta = { label: `off by ${mult.toFixed(1)}x`, color: "var(--red)", border: "var(--red)", bg: "var(--red-wash)" };
+  }
   return (
     <div className={depth > 0 ? "plan-indent" : ""}>
       <div onClick={() => node.children?.length && setOpen(o => !o)}
@@ -308,6 +323,11 @@ function PlanNodeDisplay({ node, depth = 0 }) {
           </span>
         )}
         <span style={{ fontSize: 13, color: "var(--ink-2)", flex: 1 }}>{node.description}</span>
+        {hasEstimate && (
+          <span className="num" style={{ fontSize: 11, color: "var(--ink-3)" }}>
+            est {est}{hasActual ? ` / actual ${act}` : ""}
+          </span>
+        )}
         {statEntries.length > 0 && (
           <FlipButton front={showStats ? "hide stats" : "stats"} tone="neutral" size="xs"
             onClick={e => { e.stopPropagation(); setShowStats(s => !s); }}
@@ -322,7 +342,31 @@ function PlanNodeDisplay({ node, depth = 0 }) {
       </div>
       {showStats && statEntries.length > 0 && (
         <div style={{ margin: "0 0 6px 0", padding: "8px 10px", background: "var(--bg-raised)", border: "1px solid var(--line)", borderRadius: 4 }}>
-          {statEntries.map(([k, v]) => (
+          {node.stats?.summary && (
+            <div style={{ fontSize: 13, color: "var(--ink)", lineHeight: 1.6, marginBottom: 8 }}>{node.stats.summary}</div>
+          )}
+          {hasEstimate && (
+            <div style={{ display: "flex", alignItems: "baseline", gap: 12, padding: "2px 0", fontSize: 12 }}>
+              <span style={{ color: "var(--ink-3)" }}>Estimated rows</span>
+              <span className="num" style={{ marginLeft: "auto", color: "var(--ink)" }}>{est}</span>
+            </div>
+          )}
+          <div style={{ display: "flex", alignItems: "baseline", gap: 12, padding: "2px 0", fontSize: 12 }}>
+            <span style={{ color: "var(--ink-3)" }}>Actual rows</span>
+            <span className="num" style={{ marginLeft: "auto", color: "var(--ink)" }}>{hasActual ? act : "—"}</span>
+            {delta && (
+              <span style={{ fontSize: 11, fontWeight: 600, color: delta.color, border: `1px solid ${delta.border}`, background: delta.bg, borderRadius: 3, padding: "0 6px", whiteSpace: "nowrap" }}>
+                {delta.label}
+              </span>
+            )}
+          </div>
+          {node.stats?.selectivity !== undefined && (
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "2px 0", fontSize: 12 }}>
+              <span style={{ color: "var(--ink-3)" }}>Selectivity</span>
+              <span className="num" style={{ color: "var(--ink)" }}>{node.stats.selectivity}</span>
+            </div>
+          )}
+          {restEntries.map(([k, v]) => (
             <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "2px 0", fontSize: 12 }}>
               <span style={{ color: "var(--ink-3)" }}>{k.replace(/_/g, " ")}</span>
               <span className="data-text" style={{ color: "var(--ink)", textAlign: "right", overflow: "hidden", textOverflow: "ellipsis" }}>
