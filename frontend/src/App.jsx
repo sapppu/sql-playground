@@ -914,16 +914,22 @@ export default function App() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2px 10px" }}>
               <span className="panel-title">SQL editor</span>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 12, color: "var(--ink-3)", display: "flex", alignItems: "center", gap: 4 }}>
-                  <kbd className="k">Ctrl</kbd>+<kbd className="k">↵</kbd> line
+                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <FlipButton front={runningMode === "line" ? "Running" : "Run Line"} tone="primary" size="md"
+                    onClick={runLine} disabled={loading} className={runningMode === "line" ? "run-live" : ""}
+                    aria-label="Run statement at cursor" title="Ctrl+Enter — run statement at cursor" />
+                  <span style={{ fontSize: 12, color: "var(--ink-3)", display: "flex", alignItems: "center", gap: 4 }}>
+                    <kbd className="k">Ctrl</kbd>+<kbd className="k">↵</kbd>
+                  </span>
                 </span>
-                <span style={{ fontSize: 12, color: "var(--ink-3)", display: "flex", alignItems: "center", gap: 4 }}>
-                  <kbd className="k">Ctrl</kbd>+<kbd className="k">Shift</kbd>+<kbd className="k">↵</kbd> script
+                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <FlipButton front={runningMode === "script" ? "Running" : "Run Script"} tone="neutral" size="md"
+                    onClick={runScript} disabled={loading} className={runningMode === "script" ? "run-live" : ""}
+                    aria-label="Run full script" title="Ctrl+Shift+Enter — run full script" />
+                  <span style={{ fontSize: 12, color: "var(--ink-3)", display: "flex", alignItems: "center", gap: 4 }}>
+                    <kbd className="k">Ctrl</kbd>+<kbd className="k">Shift</kbd>+<kbd className="k">↵</kbd>
+                  </span>
                 </span>
-                <FlipButton front={runningMode === "line" ? "Running" : "Run Line"} back="Ctrl+↵" tone="primary" size="md"
-                  onClick={runLine} disabled={loading} className={runningMode === "line" ? "run-live" : ""} aria-label="Run statement at cursor" />
-                <FlipButton front={runningMode === "script" ? "Running" : "Run Script"} back="Ctrl+Shift+↵" tone="neutral" size="md"
-                  onClick={runScript} disabled={loading} className={runningMode === "script" ? "run-live" : ""} aria-label="Run full script" />
               </div>
             </div>
             <div style={{ flex: 1, overflow: "auto" }}>

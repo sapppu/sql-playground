@@ -1,1 +1,5 @@
 {"sequenceNumber":1,"operation":"CREATE_TABLE","tableName":"classroom","payload":{"tableName":"classroom","columns":[{"name":"cno","type":"INT","primaryKey":true,"notNull":false},{"name":"cname","type":"VARCHAR","primaryKey":false,"notNull":false}]},"timestampMs":1789579263373}
+{"sequenceNumber":2,"operation":"INSERT","tableName":"classroom","payload":{"cno":11,"cname":"vyas"},"timestampMs":1789620474097}
+{"sequenceNumber":3,"operation":"INSERT","tableName":"classroom","payload":{"cno":13,"cname":"ss"},"timestampMs":1789620520207}
+{"sequenceNumber":4,"operation":"INSERT","tableName":"classroom","payload":{"cno":12,"cname":"rm"},"timestampMs":1789620559449}
+{"sequenceNumber":5,"operation":"INSERT","tableName":"classroom","payload":{"cno":14,"cname":"pm"},"timestampMs":1789620559462}
