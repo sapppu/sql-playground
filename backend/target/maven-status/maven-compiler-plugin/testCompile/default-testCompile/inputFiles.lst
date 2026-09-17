@@ -4,5 +4,6 @@
 /home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/test/java/com/sqlplayground/engine/JoinStrategyTest.java
 /home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/test/java/com/sqlplayground/engine/EngineTestBase.java
 /home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/test/java/com/sqlplayground/engine/ExplainTransparencyTest.java
+/home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/test/java/com/sqlplayground/engine/WalCrashRecoveryTest.java
 /home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/test/java/com/sqlplayground/engine/NotNullTest.java
 /home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/test/java/com/sqlplayground/engine/WriteAheadLogTest.java

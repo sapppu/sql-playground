@@ -39,6 +39,9 @@ public class WriteAheadLog {
     @PostConstruct
     public void init() throws IOException {
         walPath = Paths.get(walFilePath);
+        if (walPath.getParent() != null) {
+            Files.createDirectories(walPath.getParent());
+        }
         log.info("WAL file path: {}", walPath.toAbsolutePath());
 
         if (Files.exists(walPath)) {

@@ -1,0 +1,2 @@
+{"timestamp":1789627438336,"sql":"BEGIN","success":true,"message":"Transaction #1 started","rowCount":0,"elapsedMs":2}
+{"timestamp":1789627441513,"sql":"COMMIT","success":true,"message":"Transaction #1 committed","rowCount":0,"elapsedMs":0}

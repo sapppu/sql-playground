@@ -1,4 +1,5 @@
 com/sqlplayground/engine/RangeComparisonTest.class
+com/sqlplayground/engine/WalCrashRecoveryTest.class
 com/sqlplayground/bench/JoinBenchmark.class
 com/sqlplayground/engine/JoinQualifierTest.class
 com/sqlplayground/engine/ExplainTransparencyTest.class

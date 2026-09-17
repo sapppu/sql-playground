@@ -4,7 +4,11 @@ import com.sqlplayground.engine.wal.WriteAheadLog;
 import com.sqlplayground.model.Table;
 import com.sqlplayground.storage.InMemoryDatabase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,5 +51,22 @@ class WriteAheadLogTest {
         db.createTable(people());
         assertDoesNotThrow(() -> wal.replay(db));
         assertTrue(db.getTable("people").getRows().isEmpty());
+    }
+
+    @Test
+    void initCreatesMissingParentDirectories(@TempDir Path tempDir) throws Exception {
+        WriteAheadLog wal = new WriteAheadLog();
+        Path nested = tempDir.resolve("a").resolve("b").resolve("wal.log");
+        Field pathField = WriteAheadLog.class.getDeclaredField("walFilePath");
+        pathField.setAccessible(true);
+        pathField.set(wal, nested.toString());
+        Field enabledField = WriteAheadLog.class.getDeclaredField("walEnabled");
+        enabledField.setAccessible(true);
+        enabledField.setBoolean(wal, true);
+
+        assertDoesNotThrow(wal::init);
+        assertTrue(Files.exists(nested.getParent()));
+        wal.append("CHECKPOINT", "_system", Map.of("label", "x"));
+        assertTrue(Files.size(nested) > 0);
     }
 }

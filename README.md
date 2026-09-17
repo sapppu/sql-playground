@@ -99,6 +99,26 @@ Environment: OpenJDK 17.0.20, 16-core Linux, default Maven/Surefire JVM flags. N
 
 Resume line: reduced 100k-row join latency 74% (296 ms → 78 ms) by implementing a cost-based hash-join optimizer with NDV-driven cardinality estimates.
 
+## Crash recovery: WAL replay across kill -9
+
+Every mutation is appended to a per-user write-ahead log (flushed on each append) before it is applied. Only auto-commit writes and DDL reach the log — in-transaction writes live solely in MVCC version chains — so a crash replays exactly the committed prefix: committed rows come back, in-flight rows do not, with no undo pass required.
+
+![WAL crash-recovery demo: committed row survives kill -9, uncommitted row does not](backend/bench/crash-demo.gif)
+
+Reproduce it in one command (isolated port + data dir, your dev backend untouched):
+
+```bash
+# fast, no server needed — crash simulated against a real WAL file:
+mvn test -Dtest=WalCrashRecoveryTest   # from backend/
+
+# full fidelity — real backend, real kill -9, real restart:
+./bench/crash-demo.sh                  # from backend/
+```
+
+What the demo asserts: an auto-commit `INSERT` issued before `kill -9` is returned by `SELECT` after the restart; a `BEGIN` + `INSERT` that never commits is gone, and its row never appears in any WAL file. Writes are flushed per append, so this survives process crashes (not OS/power loss — no fsync).
+
+Known limitation, pinned by test: `COMMIT` currently only flips transaction status and does not flush the transaction's writes to the WAL, so even committed-transaction writes are lost on restart. Auto-commit durability is unaffected. Fixing commit-flush is the natural next step.
+
 ## Sample queries to try
 
 ```sql
