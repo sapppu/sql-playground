@@ -15,6 +15,10 @@
   "hashedPassword" : "$2a$10$PgguKhN9OJSSMcq5dzZ.mednr3tpbWZGHdA8AzrHjojPVtDmwk.lG",
   "createdAt" : 1779193985624
 }, {
+  "username" : "auditor",
+  "hashedPassword" : "$2a$10$0j8m3H2zyipbnZZNklQqtOHros267pyuj6YN2prOUCapEdDqc20gW",
+  "createdAt" : 1789633177130
+}, {
   "username" : "alice",
   "hashedPassword" : "$2a$10$OogPHzKqiqXr8mxE7a1V1enBtFkjfB8v6INjUBBJ4k4YaluR1MblO",
   "createdAt" : 1779193944451

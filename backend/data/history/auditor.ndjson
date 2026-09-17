@@ -1,0 +1,502 @@
+{"timestamp":1789633193996,"sql":"SELECT name FROM employees WHERE salary > 80000","success":true,"message":"4 row(s) returned","rowCount":4,"elapsedMs":7}
+{"timestamp":1789633194025,"sql":"SELECT name FROM employees WHERE salary < 80000","success":true,"message":"4 row(s) returned","rowCount":4,"elapsedMs":1}
+{"timestamp":1789633194061,"sql":"SELECT name FROM employees WHERE salary <= 72000","success":true,"message":"3 row(s) returned","rowCount":3,"elapsedMs":1}
+{"timestamp":1789633194097,"sql":"SELECT name FROM employees WHERE salary >= 95000","success":true,"message":"3 row(s) returned","rowCount":3,"elapsedMs":0}
+{"timestamp":1789633194137,"sql":"SELECT name FROM employees WHERE salary > 80000.0","success":true,"message":"4 row(s) returned","rowCount":4,"elapsedMs":0}
+{"timestamp":1789633194187,"sql":"SELECT name FROM employees WHERE salary <= 72000.5","success":true,"message":"3 row(s) returned","rowCount":3,"elapsedMs":1}
+{"timestamp":1789633194224,"sql":"SELECT name FROM employees WHERE id > 2","success":true,"message":"6 row(s) returned","rowCount":6,"elapsedMs":1}
+{"timestamp":1789633194261,"sql":"SELECT name FROM employees WHERE id <= 2","success":true,"message":"2 row(s) returned","rowCount":2,"elapsedMs":1}
+{"timestamp":1789633194292,"sql":"SELECT name FROM employees WHERE id >= 8","success":true,"message":"1 row(s) returned","rowCount":1,"elapsedMs":1}
+{"timestamp":1789633194327,"sql":"SELECT name FROM employees WHERE id < 1","success":true,"message":"0 row(s) returned","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633207466,"sql":"CREATE TABLE t (id INTEGER PRIMARY KEY, name VARCHAR(20) NOT NULL)","success":true,"message":"Table 't' created","rowCount":0,"elapsedMs":3}
+{"timestamp":1789633207501,"sql":"INSERT INTO t (id, name) VALUES (1, NULL)","success":false,"message":"Column 'name' cannot be null (NOT NULL constraint on table 't')","rowCount":0,"elapsedMs":2}
+{"timestamp":1789633207545,"sql":"INSERT INTO t (id, name) VALUES (1, 'Ada')","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":2}
+{"timestamp":1789633207597,"sql":"DROP TABLE t","success":true,"message":"Table 't' dropped","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633224797,"sql":"SELECT employees.name, departments.budget FROM employees JOIN departments ON employees.department = departments.name","success":true,"message":"8 row(s) returned","rowCount":8,"elapsedMs":8}
+{"timestamp":1789633224834,"sql":"SELECT employees.name, departments.name FROM employees LEFT JOIN departments ON employees.department = departments.name","success":true,"message":"8 row(s) returned","rowCount":8,"elapsedMs":1}
+{"timestamp":1789633235495,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Zed', 'NoSuchDept', 50000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633235528,"sql":"SELECT * FROM employees LEFT JOIN departments ON employees.department = departments.name","success":true,"message":"9 row(s) returned","rowCount":9,"elapsedMs":1}
+{"timestamp":1789633235568,"sql":"DELETE FROM employees WHERE name = 'Zed'","success":true,"message":"1 row(s) deleted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633253977,"sql":"CREATE TABLE big1 (id INTEGER PRIMARY KEY, v INTEGER)","success":true,"message":"Table 'big1' created","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633253996,"sql":"CREATE TABLE big2 (id INTEGER PRIMARY KEY, v INTEGER)","success":true,"message":"Table 'big2' created","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254013,"sql":"INSERT INTO big1 (v) VALUES (1)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254032,"sql":"INSERT INTO big2 (v) VALUES (1)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254050,"sql":"INSERT INTO big1 (v) VALUES (2)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254066,"sql":"INSERT INTO big2 (v) VALUES (2)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254084,"sql":"INSERT INTO big1 (v) VALUES (3)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254102,"sql":"INSERT INTO big2 (v) VALUES (3)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254118,"sql":"INSERT INTO big1 (v) VALUES (4)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254137,"sql":"INSERT INTO big2 (v) VALUES (4)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":2}
+{"timestamp":1789633254152,"sql":"INSERT INTO big1 (v) VALUES (5)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254167,"sql":"INSERT INTO big2 (v) VALUES (5)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254183,"sql":"INSERT INTO big1 (v) VALUES (6)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254200,"sql":"INSERT INTO big2 (v) VALUES (6)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254217,"sql":"INSERT INTO big1 (v) VALUES (7)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254233,"sql":"INSERT INTO big2 (v) VALUES (7)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254249,"sql":"INSERT INTO big1 (v) VALUES (8)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254265,"sql":"INSERT INTO big2 (v) VALUES (8)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254280,"sql":"INSERT INTO big1 (v) VALUES (9)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254298,"sql":"INSERT INTO big2 (v) VALUES (9)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254313,"sql":"INSERT INTO big1 (v) VALUES (10)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254329,"sql":"INSERT INTO big2 (v) VALUES (10)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254345,"sql":"INSERT INTO big1 (v) VALUES (11)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254361,"sql":"INSERT INTO big2 (v) VALUES (11)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254378,"sql":"INSERT INTO big1 (v) VALUES (12)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254395,"sql":"INSERT INTO big2 (v) VALUES (12)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254410,"sql":"INSERT INTO big1 (v) VALUES (13)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254426,"sql":"INSERT INTO big2 (v) VALUES (13)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254444,"sql":"INSERT INTO big1 (v) VALUES (14)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254460,"sql":"INSERT INTO big2 (v) VALUES (14)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254474,"sql":"INSERT INTO big1 (v) VALUES (15)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254489,"sql":"INSERT INTO big2 (v) VALUES (15)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254504,"sql":"INSERT INTO big1 (v) VALUES (16)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254519,"sql":"INSERT INTO big2 (v) VALUES (16)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254535,"sql":"INSERT INTO big1 (v) VALUES (17)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254551,"sql":"INSERT INTO big2 (v) VALUES (17)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254565,"sql":"INSERT INTO big1 (v) VALUES (18)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254581,"sql":"INSERT INTO big2 (v) VALUES (18)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254597,"sql":"INSERT INTO big1 (v) VALUES (19)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254612,"sql":"INSERT INTO big2 (v) VALUES (19)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254629,"sql":"INSERT INTO big1 (v) VALUES (20)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254645,"sql":"INSERT INTO big2 (v) VALUES (20)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254660,"sql":"INSERT INTO big1 (v) VALUES (21)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254676,"sql":"INSERT INTO big2 (v) VALUES (21)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254692,"sql":"INSERT INTO big1 (v) VALUES (22)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254707,"sql":"INSERT INTO big2 (v) VALUES (22)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254723,"sql":"INSERT INTO big1 (v) VALUES (23)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254737,"sql":"INSERT INTO big2 (v) VALUES (23)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254752,"sql":"INSERT INTO big1 (v) VALUES (24)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254766,"sql":"INSERT INTO big2 (v) VALUES (24)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254781,"sql":"INSERT INTO big1 (v) VALUES (25)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254796,"sql":"INSERT INTO big2 (v) VALUES (25)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254811,"sql":"INSERT INTO big1 (v) VALUES (26)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254826,"sql":"INSERT INTO big2 (v) VALUES (26)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254840,"sql":"INSERT INTO big1 (v) VALUES (27)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254856,"sql":"INSERT INTO big2 (v) VALUES (27)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254871,"sql":"INSERT INTO big1 (v) VALUES (28)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254887,"sql":"INSERT INTO big2 (v) VALUES (28)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254904,"sql":"INSERT INTO big1 (v) VALUES (29)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254919,"sql":"INSERT INTO big2 (v) VALUES (29)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254935,"sql":"INSERT INTO big1 (v) VALUES (30)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254951,"sql":"INSERT INTO big2 (v) VALUES (30)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633254968,"sql":"INSERT INTO big1 (v) VALUES (31)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633254984,"sql":"INSERT INTO big2 (v) VALUES (31)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255000,"sql":"INSERT INTO big1 (v) VALUES (32)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255016,"sql":"INSERT INTO big2 (v) VALUES (32)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255030,"sql":"INSERT INTO big1 (v) VALUES (33)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255043,"sql":"INSERT INTO big2 (v) VALUES (33)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255057,"sql":"INSERT INTO big1 (v) VALUES (34)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255072,"sql":"INSERT INTO big2 (v) VALUES (34)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255088,"sql":"INSERT INTO big1 (v) VALUES (35)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255102,"sql":"INSERT INTO big2 (v) VALUES (35)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255117,"sql":"INSERT INTO big1 (v) VALUES (36)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255132,"sql":"INSERT INTO big2 (v) VALUES (36)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255147,"sql":"INSERT INTO big1 (v) VALUES (37)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255161,"sql":"INSERT INTO big2 (v) VALUES (37)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255176,"sql":"INSERT INTO big1 (v) VALUES (38)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255191,"sql":"INSERT INTO big2 (v) VALUES (38)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255206,"sql":"INSERT INTO big1 (v) VALUES (39)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255221,"sql":"INSERT INTO big2 (v) VALUES (39)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255236,"sql":"INSERT INTO big1 (v) VALUES (40)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255251,"sql":"INSERT INTO big2 (v) VALUES (40)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255265,"sql":"INSERT INTO big1 (v) VALUES (41)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255280,"sql":"INSERT INTO big2 (v) VALUES (41)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255295,"sql":"INSERT INTO big1 (v) VALUES (42)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255310,"sql":"INSERT INTO big2 (v) VALUES (42)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255325,"sql":"INSERT INTO big1 (v) VALUES (43)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255340,"sql":"INSERT INTO big2 (v) VALUES (43)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255354,"sql":"INSERT INTO big1 (v) VALUES (44)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255369,"sql":"INSERT INTO big2 (v) VALUES (44)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255383,"sql":"INSERT INTO big1 (v) VALUES (45)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255398,"sql":"INSERT INTO big2 (v) VALUES (45)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255412,"sql":"INSERT INTO big1 (v) VALUES (46)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255428,"sql":"INSERT INTO big2 (v) VALUES (46)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255443,"sql":"INSERT INTO big1 (v) VALUES (47)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255457,"sql":"INSERT INTO big2 (v) VALUES (47)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255472,"sql":"INSERT INTO big1 (v) VALUES (48)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255486,"sql":"INSERT INTO big2 (v) VALUES (48)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255499,"sql":"INSERT INTO big1 (v) VALUES (49)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255513,"sql":"INSERT INTO big2 (v) VALUES (49)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255526,"sql":"INSERT INTO big1 (v) VALUES (50)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255540,"sql":"INSERT INTO big2 (v) VALUES (50)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255554,"sql":"INSERT INTO big1 (v) VALUES (51)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255568,"sql":"INSERT INTO big2 (v) VALUES (51)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255582,"sql":"INSERT INTO big1 (v) VALUES (52)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255601,"sql":"INSERT INTO big2 (v) VALUES (52)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255618,"sql":"INSERT INTO big1 (v) VALUES (53)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255634,"sql":"INSERT INTO big2 (v) VALUES (53)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255648,"sql":"INSERT INTO big1 (v) VALUES (54)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255663,"sql":"INSERT INTO big2 (v) VALUES (54)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255677,"sql":"INSERT INTO big1 (v) VALUES (55)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255691,"sql":"INSERT INTO big2 (v) VALUES (55)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255707,"sql":"INSERT INTO big1 (v) VALUES (56)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255721,"sql":"INSERT INTO big2 (v) VALUES (56)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255735,"sql":"INSERT INTO big1 (v) VALUES (57)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255750,"sql":"INSERT INTO big2 (v) VALUES (57)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255764,"sql":"INSERT INTO big1 (v) VALUES (58)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255779,"sql":"INSERT INTO big2 (v) VALUES (58)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255793,"sql":"INSERT INTO big1 (v) VALUES (59)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255807,"sql":"INSERT INTO big2 (v) VALUES (59)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255821,"sql":"INSERT INTO big1 (v) VALUES (60)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255836,"sql":"INSERT INTO big2 (v) VALUES (60)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255850,"sql":"INSERT INTO big1 (v) VALUES (61)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255864,"sql":"INSERT INTO big2 (v) VALUES (61)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255878,"sql":"INSERT INTO big1 (v) VALUES (62)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255893,"sql":"INSERT INTO big2 (v) VALUES (62)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633255907,"sql":"INSERT INTO big1 (v) VALUES (63)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255922,"sql":"INSERT INTO big2 (v) VALUES (63)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255937,"sql":"INSERT INTO big1 (v) VALUES (64)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255950,"sql":"INSERT INTO big2 (v) VALUES (64)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255965,"sql":"INSERT INTO big1 (v) VALUES (65)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255979,"sql":"INSERT INTO big2 (v) VALUES (65)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633255993,"sql":"INSERT INTO big1 (v) VALUES (66)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256007,"sql":"INSERT INTO big2 (v) VALUES (66)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256022,"sql":"INSERT INTO big1 (v) VALUES (67)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256037,"sql":"INSERT INTO big2 (v) VALUES (67)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256051,"sql":"INSERT INTO big1 (v) VALUES (68)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256064,"sql":"INSERT INTO big2 (v) VALUES (68)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256079,"sql":"INSERT INTO big1 (v) VALUES (69)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256096,"sql":"INSERT INTO big2 (v) VALUES (69)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256113,"sql":"INSERT INTO big1 (v) VALUES (70)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256130,"sql":"INSERT INTO big2 (v) VALUES (70)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256146,"sql":"INSERT INTO big1 (v) VALUES (71)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256160,"sql":"INSERT INTO big2 (v) VALUES (71)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256175,"sql":"INSERT INTO big1 (v) VALUES (72)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256189,"sql":"INSERT INTO big2 (v) VALUES (72)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256203,"sql":"INSERT INTO big1 (v) VALUES (73)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256217,"sql":"INSERT INTO big2 (v) VALUES (73)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256232,"sql":"INSERT INTO big1 (v) VALUES (74)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256247,"sql":"INSERT INTO big2 (v) VALUES (74)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256261,"sql":"INSERT INTO big1 (v) VALUES (75)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256275,"sql":"INSERT INTO big2 (v) VALUES (75)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256290,"sql":"INSERT INTO big1 (v) VALUES (76)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256305,"sql":"INSERT INTO big2 (v) VALUES (76)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256319,"sql":"INSERT INTO big1 (v) VALUES (77)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256336,"sql":"INSERT INTO big2 (v) VALUES (77)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256352,"sql":"INSERT INTO big1 (v) VALUES (78)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256368,"sql":"INSERT INTO big2 (v) VALUES (78)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256384,"sql":"INSERT INTO big1 (v) VALUES (79)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256400,"sql":"INSERT INTO big2 (v) VALUES (79)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256416,"sql":"INSERT INTO big1 (v) VALUES (80)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256430,"sql":"INSERT INTO big2 (v) VALUES (80)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256445,"sql":"INSERT INTO big1 (v) VALUES (81)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256459,"sql":"INSERT INTO big2 (v) VALUES (81)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256475,"sql":"INSERT INTO big1 (v) VALUES (82)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256489,"sql":"INSERT INTO big2 (v) VALUES (82)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256504,"sql":"INSERT INTO big1 (v) VALUES (83)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256519,"sql":"INSERT INTO big2 (v) VALUES (83)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256535,"sql":"INSERT INTO big1 (v) VALUES (84)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256550,"sql":"INSERT INTO big2 (v) VALUES (84)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256566,"sql":"INSERT INTO big1 (v) VALUES (85)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256580,"sql":"INSERT INTO big2 (v) VALUES (85)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256595,"sql":"INSERT INTO big1 (v) VALUES (86)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256608,"sql":"INSERT INTO big2 (v) VALUES (86)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256623,"sql":"INSERT INTO big1 (v) VALUES (87)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256637,"sql":"INSERT INTO big2 (v) VALUES (87)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256651,"sql":"INSERT INTO big1 (v) VALUES (88)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256667,"sql":"INSERT INTO big2 (v) VALUES (88)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256681,"sql":"INSERT INTO big1 (v) VALUES (89)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256695,"sql":"INSERT INTO big2 (v) VALUES (89)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256710,"sql":"INSERT INTO big1 (v) VALUES (90)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256724,"sql":"INSERT INTO big2 (v) VALUES (90)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256738,"sql":"INSERT INTO big1 (v) VALUES (91)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256752,"sql":"INSERT INTO big2 (v) VALUES (91)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256767,"sql":"INSERT INTO big1 (v) VALUES (92)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256780,"sql":"INSERT INTO big2 (v) VALUES (92)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256794,"sql":"INSERT INTO big1 (v) VALUES (93)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256812,"sql":"INSERT INTO big2 (v) VALUES (93)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256825,"sql":"INSERT INTO big1 (v) VALUES (94)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256837,"sql":"INSERT INTO big2 (v) VALUES (94)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256849,"sql":"INSERT INTO big1 (v) VALUES (95)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256862,"sql":"INSERT INTO big2 (v) VALUES (95)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256874,"sql":"INSERT INTO big1 (v) VALUES (96)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256886,"sql":"INSERT INTO big2 (v) VALUES (96)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256898,"sql":"INSERT INTO big1 (v) VALUES (97)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256910,"sql":"INSERT INTO big2 (v) VALUES (97)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256923,"sql":"INSERT INTO big1 (v) VALUES (98)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256935,"sql":"INSERT INTO big2 (v) VALUES (98)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256948,"sql":"INSERT INTO big1 (v) VALUES (99)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633256961,"sql":"INSERT INTO big2 (v) VALUES (99)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256974,"sql":"INSERT INTO big1 (v) VALUES (100)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256986,"sql":"INSERT INTO big2 (v) VALUES (100)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633256998,"sql":"INSERT INTO big1 (v) VALUES (101)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257012,"sql":"INSERT INTO big2 (v) VALUES (101)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257024,"sql":"INSERT INTO big1 (v) VALUES (102)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257035,"sql":"INSERT INTO big2 (v) VALUES (102)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257046,"sql":"INSERT INTO big1 (v) VALUES (103)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257059,"sql":"INSERT INTO big2 (v) VALUES (103)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257071,"sql":"INSERT INTO big1 (v) VALUES (104)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257083,"sql":"INSERT INTO big2 (v) VALUES (104)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257095,"sql":"INSERT INTO big1 (v) VALUES (105)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257108,"sql":"INSERT INTO big2 (v) VALUES (105)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257120,"sql":"INSERT INTO big1 (v) VALUES (106)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257133,"sql":"INSERT INTO big2 (v) VALUES (106)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257147,"sql":"INSERT INTO big1 (v) VALUES (107)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257159,"sql":"INSERT INTO big2 (v) VALUES (107)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257171,"sql":"INSERT INTO big1 (v) VALUES (108)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257183,"sql":"INSERT INTO big2 (v) VALUES (108)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257195,"sql":"INSERT INTO big1 (v) VALUES (109)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257207,"sql":"INSERT INTO big2 (v) VALUES (109)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257219,"sql":"INSERT INTO big1 (v) VALUES (110)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257231,"sql":"INSERT INTO big2 (v) VALUES (110)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257244,"sql":"INSERT INTO big1 (v) VALUES (111)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257256,"sql":"INSERT INTO big2 (v) VALUES (111)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257268,"sql":"INSERT INTO big1 (v) VALUES (112)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257281,"sql":"INSERT INTO big2 (v) VALUES (112)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257293,"sql":"INSERT INTO big1 (v) VALUES (113)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257305,"sql":"INSERT INTO big2 (v) VALUES (113)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257317,"sql":"INSERT INTO big1 (v) VALUES (114)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257330,"sql":"INSERT INTO big2 (v) VALUES (114)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257343,"sql":"INSERT INTO big1 (v) VALUES (115)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257356,"sql":"INSERT INTO big2 (v) VALUES (115)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257370,"sql":"INSERT INTO big1 (v) VALUES (116)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257383,"sql":"INSERT INTO big2 (v) VALUES (116)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257395,"sql":"INSERT INTO big1 (v) VALUES (117)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257409,"sql":"INSERT INTO big2 (v) VALUES (117)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257422,"sql":"INSERT INTO big1 (v) VALUES (118)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257435,"sql":"INSERT INTO big2 (v) VALUES (118)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257446,"sql":"INSERT INTO big1 (v) VALUES (119)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257456,"sql":"INSERT INTO big2 (v) VALUES (119)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257468,"sql":"INSERT INTO big1 (v) VALUES (120)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257479,"sql":"INSERT INTO big2 (v) VALUES (120)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257489,"sql":"INSERT INTO big1 (v) VALUES (121)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257502,"sql":"INSERT INTO big2 (v) VALUES (121)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257513,"sql":"INSERT INTO big1 (v) VALUES (122)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257525,"sql":"INSERT INTO big2 (v) VALUES (122)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257540,"sql":"INSERT INTO big1 (v) VALUES (123)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257551,"sql":"INSERT INTO big2 (v) VALUES (123)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257562,"sql":"INSERT INTO big1 (v) VALUES (124)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257574,"sql":"INSERT INTO big2 (v) VALUES (124)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257587,"sql":"INSERT INTO big1 (v) VALUES (125)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257599,"sql":"INSERT INTO big2 (v) VALUES (125)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257611,"sql":"INSERT INTO big1 (v) VALUES (126)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257623,"sql":"INSERT INTO big2 (v) VALUES (126)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257634,"sql":"INSERT INTO big1 (v) VALUES (127)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257645,"sql":"INSERT INTO big2 (v) VALUES (127)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257657,"sql":"INSERT INTO big1 (v) VALUES (128)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257668,"sql":"INSERT INTO big2 (v) VALUES (128)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257679,"sql":"INSERT INTO big1 (v) VALUES (129)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257691,"sql":"INSERT INTO big2 (v) VALUES (129)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257702,"sql":"INSERT INTO big1 (v) VALUES (130)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257713,"sql":"INSERT INTO big2 (v) VALUES (130)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257725,"sql":"INSERT INTO big1 (v) VALUES (131)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257736,"sql":"INSERT INTO big2 (v) VALUES (131)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257747,"sql":"INSERT INTO big1 (v) VALUES (132)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257759,"sql":"INSERT INTO big2 (v) VALUES (132)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257770,"sql":"INSERT INTO big1 (v) VALUES (133)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257780,"sql":"INSERT INTO big2 (v) VALUES (133)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257791,"sql":"INSERT INTO big1 (v) VALUES (134)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257802,"sql":"INSERT INTO big2 (v) VALUES (134)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257813,"sql":"INSERT INTO big1 (v) VALUES (135)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257824,"sql":"INSERT INTO big2 (v) VALUES (135)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257835,"sql":"INSERT INTO big1 (v) VALUES (136)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257848,"sql":"INSERT INTO big2 (v) VALUES (136)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257861,"sql":"INSERT INTO big1 (v) VALUES (137)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257871,"sql":"INSERT INTO big2 (v) VALUES (137)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257883,"sql":"INSERT INTO big1 (v) VALUES (138)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257894,"sql":"INSERT INTO big2 (v) VALUES (138)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257905,"sql":"INSERT INTO big1 (v) VALUES (139)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257916,"sql":"INSERT INTO big2 (v) VALUES (139)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257927,"sql":"INSERT INTO big1 (v) VALUES (140)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257937,"sql":"INSERT INTO big2 (v) VALUES (140)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257948,"sql":"INSERT INTO big1 (v) VALUES (141)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257960,"sql":"INSERT INTO big2 (v) VALUES (141)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633257971,"sql":"INSERT INTO big1 (v) VALUES (142)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257983,"sql":"INSERT INTO big2 (v) VALUES (142)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633257994,"sql":"INSERT INTO big1 (v) VALUES (143)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258006,"sql":"INSERT INTO big2 (v) VALUES (143)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258017,"sql":"INSERT INTO big1 (v) VALUES (144)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258028,"sql":"INSERT INTO big2 (v) VALUES (144)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258040,"sql":"INSERT INTO big1 (v) VALUES (145)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258050,"sql":"INSERT INTO big2 (v) VALUES (145)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258061,"sql":"INSERT INTO big1 (v) VALUES (146)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258072,"sql":"INSERT INTO big2 (v) VALUES (146)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258083,"sql":"INSERT INTO big1 (v) VALUES (147)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258094,"sql":"INSERT INTO big2 (v) VALUES (147)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258105,"sql":"INSERT INTO big1 (v) VALUES (148)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258116,"sql":"INSERT INTO big2 (v) VALUES (148)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258127,"sql":"INSERT INTO big1 (v) VALUES (149)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258138,"sql":"INSERT INTO big2 (v) VALUES (149)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258149,"sql":"INSERT INTO big1 (v) VALUES (150)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258160,"sql":"INSERT INTO big2 (v) VALUES (150)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258170,"sql":"INSERT INTO big1 (v) VALUES (151)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258181,"sql":"INSERT INTO big2 (v) VALUES (151)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258193,"sql":"INSERT INTO big1 (v) VALUES (152)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633258204,"sql":"INSERT INTO big2 (v) VALUES (152)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258218,"sql":"INSERT INTO big1 (v) VALUES (153)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633258229,"sql":"INSERT INTO big2 (v) VALUES (153)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258240,"sql":"INSERT INTO big1 (v) VALUES (154)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258252,"sql":"INSERT INTO big2 (v) VALUES (154)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258263,"sql":"INSERT INTO big1 (v) VALUES (155)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258275,"sql":"INSERT INTO big2 (v) VALUES (155)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258287,"sql":"INSERT INTO big1 (v) VALUES (156)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258298,"sql":"INSERT INTO big2 (v) VALUES (156)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258310,"sql":"INSERT INTO big1 (v) VALUES (157)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258321,"sql":"INSERT INTO big2 (v) VALUES (157)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258332,"sql":"INSERT INTO big1 (v) VALUES (158)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258344,"sql":"INSERT INTO big2 (v) VALUES (158)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258356,"sql":"INSERT INTO big1 (v) VALUES (159)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258367,"sql":"INSERT INTO big2 (v) VALUES (159)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258377,"sql":"INSERT INTO big1 (v) VALUES (160)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258389,"sql":"INSERT INTO big2 (v) VALUES (160)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258403,"sql":"INSERT INTO big1 (v) VALUES (161)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258415,"sql":"INSERT INTO big2 (v) VALUES (161)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258426,"sql":"INSERT INTO big1 (v) VALUES (162)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258438,"sql":"INSERT INTO big2 (v) VALUES (162)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258450,"sql":"INSERT INTO big1 (v) VALUES (163)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258461,"sql":"INSERT INTO big2 (v) VALUES (163)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258473,"sql":"INSERT INTO big1 (v) VALUES (164)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633258483,"sql":"INSERT INTO big2 (v) VALUES (164)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258495,"sql":"INSERT INTO big1 (v) VALUES (165)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258505,"sql":"INSERT INTO big2 (v) VALUES (165)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258517,"sql":"INSERT INTO big1 (v) VALUES (166)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258528,"sql":"INSERT INTO big2 (v) VALUES (166)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258541,"sql":"INSERT INTO big1 (v) VALUES (167)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633258553,"sql":"INSERT INTO big2 (v) VALUES (167)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258565,"sql":"INSERT INTO big1 (v) VALUES (168)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258575,"sql":"INSERT INTO big2 (v) VALUES (168)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258588,"sql":"INSERT INTO big1 (v) VALUES (169)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258599,"sql":"INSERT INTO big2 (v) VALUES (169)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633258610,"sql":"INSERT INTO big1 (v) VALUES (170)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258621,"sql":"INSERT INTO big2 (v) VALUES (170)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258635,"sql":"INSERT INTO big1 (v) VALUES (171)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258646,"sql":"INSERT INTO big2 (v) VALUES (171)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258658,"sql":"INSERT INTO big1 (v) VALUES (172)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258670,"sql":"INSERT INTO big2 (v) VALUES (172)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258681,"sql":"INSERT INTO big1 (v) VALUES (173)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258693,"sql":"INSERT INTO big2 (v) VALUES (173)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633258703,"sql":"INSERT INTO big1 (v) VALUES (174)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258715,"sql":"INSERT INTO big2 (v) VALUES (174)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258727,"sql":"INSERT INTO big1 (v) VALUES (175)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258738,"sql":"INSERT INTO big2 (v) VALUES (175)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258750,"sql":"INSERT INTO big1 (v) VALUES (176)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258762,"sql":"INSERT INTO big2 (v) VALUES (176)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258774,"sql":"INSERT INTO big1 (v) VALUES (177)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258786,"sql":"INSERT INTO big2 (v) VALUES (177)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258797,"sql":"INSERT INTO big1 (v) VALUES (178)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633258808,"sql":"INSERT INTO big2 (v) VALUES (178)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258820,"sql":"INSERT INTO big1 (v) VALUES (179)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258832,"sql":"INSERT INTO big2 (v) VALUES (179)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258846,"sql":"INSERT INTO big1 (v) VALUES (180)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633258860,"sql":"INSERT INTO big2 (v) VALUES (180)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258872,"sql":"INSERT INTO big1 (v) VALUES (181)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258884,"sql":"INSERT INTO big2 (v) VALUES (181)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258895,"sql":"INSERT INTO big1 (v) VALUES (182)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258905,"sql":"INSERT INTO big2 (v) VALUES (182)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258915,"sql":"INSERT INTO big1 (v) VALUES (183)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258932,"sql":"INSERT INTO big2 (v) VALUES (183)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258943,"sql":"INSERT INTO big1 (v) VALUES (184)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258955,"sql":"INSERT INTO big2 (v) VALUES (184)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258965,"sql":"INSERT INTO big1 (v) VALUES (185)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258976,"sql":"INSERT INTO big2 (v) VALUES (185)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633258988,"sql":"INSERT INTO big1 (v) VALUES (186)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259000,"sql":"INSERT INTO big2 (v) VALUES (186)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259010,"sql":"INSERT INTO big1 (v) VALUES (187)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259022,"sql":"INSERT INTO big2 (v) VALUES (187)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259033,"sql":"INSERT INTO big1 (v) VALUES (188)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633259043,"sql":"INSERT INTO big2 (v) VALUES (188)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633259053,"sql":"INSERT INTO big1 (v) VALUES (189)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259065,"sql":"INSERT INTO big2 (v) VALUES (189)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633259076,"sql":"INSERT INTO big1 (v) VALUES (190)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259086,"sql":"INSERT INTO big2 (v) VALUES (190)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259098,"sql":"INSERT INTO big1 (v) VALUES (191)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259110,"sql":"INSERT INTO big2 (v) VALUES (191)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259121,"sql":"INSERT INTO big1 (v) VALUES (192)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259133,"sql":"INSERT INTO big2 (v) VALUES (192)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259145,"sql":"INSERT INTO big1 (v) VALUES (193)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259156,"sql":"INSERT INTO big2 (v) VALUES (193)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259167,"sql":"INSERT INTO big1 (v) VALUES (194)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259178,"sql":"INSERT INTO big2 (v) VALUES (194)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633259188,"sql":"INSERT INTO big1 (v) VALUES (195)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259199,"sql":"INSERT INTO big2 (v) VALUES (195)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259210,"sql":"INSERT INTO big1 (v) VALUES (196)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259221,"sql":"INSERT INTO big2 (v) VALUES (196)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259231,"sql":"INSERT INTO big1 (v) VALUES (197)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259243,"sql":"INSERT INTO big2 (v) VALUES (197)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259254,"sql":"INSERT INTO big1 (v) VALUES (198)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259266,"sql":"INSERT INTO big2 (v) VALUES (198)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259277,"sql":"INSERT INTO big1 (v) VALUES (199)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259288,"sql":"INSERT INTO big2 (v) VALUES (199)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259299,"sql":"INSERT INTO big1 (v) VALUES (200)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259310,"sql":"INSERT INTO big2 (v) VALUES (200)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259321,"sql":"INSERT INTO big1 (v) VALUES (201)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259333,"sql":"INSERT INTO big2 (v) VALUES (201)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259345,"sql":"INSERT INTO big1 (v) VALUES (202)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259356,"sql":"INSERT INTO big2 (v) VALUES (202)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259368,"sql":"INSERT INTO big1 (v) VALUES (203)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633259378,"sql":"INSERT INTO big2 (v) VALUES (203)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259389,"sql":"INSERT INTO big1 (v) VALUES (204)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259401,"sql":"INSERT INTO big2 (v) VALUES (204)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259412,"sql":"INSERT INTO big1 (v) VALUES (205)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259423,"sql":"INSERT INTO big2 (v) VALUES (205)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259434,"sql":"INSERT INTO big1 (v) VALUES (206)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259446,"sql":"INSERT INTO big2 (v) VALUES (206)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259456,"sql":"INSERT INTO big1 (v) VALUES (207)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259467,"sql":"INSERT INTO big2 (v) VALUES (207)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633259477,"sql":"INSERT INTO big1 (v) VALUES (208)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259489,"sql":"INSERT INTO big2 (v) VALUES (208)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259501,"sql":"INSERT INTO big1 (v) VALUES (209)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259511,"sql":"INSERT INTO big2 (v) VALUES (209)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259522,"sql":"INSERT INTO big1 (v) VALUES (210)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259534,"sql":"INSERT INTO big2 (v) VALUES (210)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633259547,"sql":"ANALYZE big1","success":true,"message":"Analyzed 'big1' — 5 columns","rowCount":2,"elapsedMs":2}
+{"timestamp":1789633259557,"sql":"ANALYZE big2","success":true,"message":"Analyzed 'big2' — 5 columns","rowCount":2,"elapsedMs":0}
+{"timestamp":1789633291728,"sql":"SELECT * FROM employees JOIN departments ON employees.department = departments.name","success":true,"message":"8 row(s) returned","rowCount":8,"elapsedMs":1}
+{"timestamp":1789633291761,"sql":"SELECT * FROM big1 JOIN big2 ON big1.id = big2.id","success":true,"message":"210 row(s) returned","rowCount":210,"elapsedMs":4}
+{"timestamp":1789633320724,"sql":"DROP TABLE big1","success":true,"message":"Table 'big1' dropped","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633320760,"sql":"DROP TABLE big2","success":true,"message":"Table 'big2' dropped","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633363863,"sql":"BEGIN","success":true,"message":"Transaction #1 started","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633363904,"sql":"ROLLBACK","success":true,"message":"Transaction #1 rolled back","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633457865,"sql":"SELECT * FROM departments","success":true,"message":"3 row(s) returned","rowCount":3,"elapsedMs":0}
+{"timestamp":1789633457899,"sql":"SELECT * FROM employees","success":true,"message":"8 row(s) returned","rowCount":8,"elapsedMs":1}
+{"timestamp":1789633457946,"sql":"SELECT * FROM departments","success":true,"message":"3 row(s) returned","rowCount":3,"elapsedMs":0}
+{"timestamp":1789633457993,"sql":"SELECT * FROM products","success":true,"message":"5 row(s) returned","rowCount":5,"elapsedMs":1}
+{"timestamp":1789633466091,"sql":"SELECT * FROM employees","success":true,"message":"8 row(s) returned","rowCount":8,"elapsedMs":1}
+{"timestamp":1789633466123,"sql":"SELECT * FROM nosuchtable","success":false,"message":"Table not found: nosuchtable","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633567623,"sql":"SELECT name FROM employees WHERE salary > 80000","success":true,"message":"4 row(s) returned","rowCount":4,"elapsedMs":0}
+{"timestamp":1789633583551,"sql":"SELECT name FROM employees WHERE salary > 80000","success":true,"message":"4 row(s) returned","rowCount":4,"elapsedMs":0}
+{"timestamp":1789633600571,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk1', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600585,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk2', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633600598,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk3', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600613,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk4', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633600625,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk5', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600640,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk6', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600653,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk7', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600665,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk8', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600679,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk9', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600693,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk10', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600707,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk11', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600720,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk12', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600733,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk13', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600747,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk14', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600761,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk15', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633600775,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk16', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600789,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk17', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633600803,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk18', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600818,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk19', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600833,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk20', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600846,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk21', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600858,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk22', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600871,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk23', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600883,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk24', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600898,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk25', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633600911,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk26', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600925,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk27', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600939,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk28', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600951,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk29', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600965,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk30', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600980,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk31', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633600993,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk32', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633601006,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk33', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633601021,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk34', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633601034,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk35', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633601048,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk36', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633601062,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk37', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633601076,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk38', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633601090,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk39', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":0}
+{"timestamp":1789633601104,"sql":"INSERT INTO employees (name, department, salary, active) VALUES ('Bulk40', 'Engineering', 200000, true)","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633601119,"sql":"SELECT name FROM employees WHERE salary > 80000","success":true,"message":"44 row(s) returned","rowCount":44,"elapsedMs":0}
+{"timestamp":1789633601159,"sql":"ANALYZE employees","success":true,"message":"Analyzed 'employees' — 5 columns","rowCount":5,"elapsedMs":1}
+{"timestamp":1789633601173,"sql":"SELECT name FROM employees WHERE salary > 80000","success":true,"message":"44 row(s) returned","rowCount":44,"elapsedMs":1}
+{"timestamp":1789633608799,"sql":"DELETE FROM employees WHERE salary = 200000","success":true,"message":"40 row(s) deleted","rowCount":0,"elapsedMs":1}
+{"timestamp":1789633608833,"sql":"SELECT * FROM employees","success":true,"message":"8 row(s) returned","rowCount":8,"elapsedMs":0}

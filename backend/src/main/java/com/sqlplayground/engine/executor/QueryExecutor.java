@@ -135,6 +135,11 @@ public class QueryExecutor {
         }
         if (ast.type == AstNode.NodeType.COMMIT_STMT) {
             long tid = txnManager.commit(sessionId != null ? sessionId : "default");
+            // Stamp the transaction's versions so later snapshots order them.
+            long seq = txnManager.getCommitSeq(tid);
+            for (Table t : db.getAllTables().values()) {
+                t.stampCommit(tid, seq);
+            }
             return new QueryResult(Collections.emptyList(), Collections.emptyList(), "Transaction #" + tid + " committed");
         }
         if (ast.type == AstNode.NodeType.ROLLBACK_STMT) {

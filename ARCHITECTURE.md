@@ -40,3 +40,17 @@ Every auto-commit INSERT/UPDATE/DELETE and every DDL statement is appended to a 
 1. **200 rows is a measured threshold, not a round number.** The forced-strategy benchmark (`backend/bench/join-benchmark.csv`) shows hash join ahead at every measured size — 1.3x at 10 rows, 3.8x (296 ms → 78 ms) at 100k rows, ~1,100x when the build side itself reaches 2,000 rows. 200 sits comfortably on the side where hash has already won, with margin for wider rows and slower disks. The threshold is one constant (`HASH_JOIN_THRESHOLD`) shared by planner and executor, so the two can never disagree about the rule — only about the inputs, which is itself surfaced.
 2. **Estimates and actuals travel together.** Most engines make you trust the plan or re-run with instrumentation. Here every response carries both, because the plan/actual delta is the cheapest possible signal that statistics are stale — and stale statistics are the normal state of any database that accepts writes between `ANALYZE` runs.
 3. **The WAL logs the commit boundary, not the operation stream.** Logging only auto-commit writes keeps the log exactly equal to the durable prefix of history: replay is a straight re-application with no undo phase and no transaction table to reconcile. The price is explicit: uncommitted work is simply absent after a crash, by construction rather than by cleanup.
+
+## Stretch differentiator: snapshot isolation (Option A)
+
+Of MVCC snapshot reads, result caching, and a columnar engine, this project picked snapshot isolation — deliberately. It builds on the MVCC machinery already here (row-version chains, session transactions, visibility rules) instead of bolting on an unrelated subsystem; a cache would add a benchmark number of thin interview value, and a columnar engine cannot be done *well* in a single pass. Every transaction captures the commit sequence at `BEGIN` and only sees versions committed within its snapshot, so concurrent commits never move an open transaction's view:
+
+```
+-- session A                          -- session B
+BEGIN;                                 BEGIN;
+SELECT * FROM departments;  → 3       INSERT INTO departments ... 'Legal';
+SELECT * FROM departments;  → 3         COMMIT;
+                                       -- (meanwhile, fresh readers see 4)
+```
+
+`mvn test -Dtest=SnapshotIsolationTest` pins repeatable reads, self-visibility, rollback invisibility, and post-snapshot deletes staying visible. Two deliberately narrow semantics, stated plainly: auto-commit writes bypass versioning and are visible immediately (consistent with the WAL boundary above), and true parallel-thread safety of the in-memory structures remains future work — the guarantee proven here is snapshot *semantics* under interleaved sessions, tested deterministically rather than by racy thread timing.

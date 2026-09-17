@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.sqlplayground.engine.WalCrashRecoveryTest" time="0.068" tests="3" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.sqlplayground.engine.SnapshotIsolationTest" time="0.015" tests="5" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -53,28 +53,9 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="committedWritesSurviveCrash" classname="com.sqlplayground.engine.WalCrashRecoveryTest" time="0.045">
-    <system-out><![CDATA[13:49:17.214 [main] INFO com.sqlplayground.engine.wal.WriteAheadLog -- WAL file path: /tmp/junit9237275712728920935/crash.log
-13:49:17.215 [main] INFO com.sqlplayground.engine.wal.WriteAheadLog -- WAL opened for append. Existing entries: 0
-13:49:17.223 [main] INFO com.sqlplayground.engine.wal.WriteAheadLog -- WAL file path: /tmp/junit9237275712728920935/crash.log
-13:49:17.255 [main] INFO com.sqlplayground.engine.wal.WriteAheadLog -- Loaded 3 WAL entries from disk. Next seq: 4
-13:49:17.256 [main] INFO com.sqlplayground.engine.wal.WriteAheadLog -- WAL opened for append. Existing entries: 3
-]]></system-out>
-  </testcase>
-  <testcase name="committedTransactionWritesAreNotYetDurableAcrossRestart" classname="com.sqlplayground.engine.WalCrashRecoveryTest" time="0.009">
-    <system-out><![CDATA[13:49:17.260 [main] INFO com.sqlplayground.engine.wal.WriteAheadLog -- WAL file path: /tmp/junit9915341861223927334/crash.log
-13:49:17.260 [main] INFO com.sqlplayground.engine.wal.WriteAheadLog -- WAL opened for append. Existing entries: 0
-13:49:17.263 [main] INFO com.sqlplayground.engine.wal.WriteAheadLog -- WAL file path: /tmp/junit9915341861223927334/crash.log
-13:49:17.266 [main] INFO com.sqlplayground.engine.wal.WriteAheadLog -- Loaded 2 WAL entries from disk. Next seq: 3
-13:49:17.267 [main] INFO com.sqlplayground.engine.wal.WriteAheadLog -- WAL opened for append. Existing entries: 2
-]]></system-out>
-  </testcase>
-  <testcase name="uncommittedWritesDoNotSurviveCrash" classname="com.sqlplayground.engine.WalCrashRecoveryTest" time="0.01">
-    <system-out><![CDATA[13:49:17.269 [main] INFO com.sqlplayground.engine.wal.WriteAheadLog -- WAL file path: /tmp/junit1786305305296820398/crash.log
-13:49:17.270 [main] INFO com.sqlplayground.engine.wal.WriteAheadLog -- WAL opened for append. Existing entries: 0
-13:49:17.273 [main] INFO com.sqlplayground.engine.wal.WriteAheadLog -- WAL file path: /tmp/junit1786305305296820398/crash.log
-13:49:17.275 [main] INFO com.sqlplayground.engine.wal.WriteAheadLog -- Loaded 2 WAL entries from disk. Next seq: 3
-13:49:17.276 [main] INFO com.sqlplayground.engine.wal.WriteAheadLog -- WAL opened for append. Existing entries: 2
-]]></system-out>
-  </testcase>
+  <testcase name="repeatableReadAcrossConcurrentCommit" classname="com.sqlplayground.engine.SnapshotIsolationTest" time="0.004"/>
+  <testcase name="ownWritesVisibleToSelfInvisibleToOthers" classname="com.sqlplayground.engine.SnapshotIsolationTest" time="0.001"/>
+  <testcase name="rollbackStaysInvisible" classname="com.sqlplayground.engine.SnapshotIsolationTest" time="0.001"/>
+  <testcase name="ownDeleteHidesRowFromSelf" classname="com.sqlplayground.engine.SnapshotIsolationTest" time="0.002"/>
+  <testcase name="deleteCommittedAfterSnapshotStaysVisible" classname="com.sqlplayground.engine.SnapshotIsolationTest" time="0.002"/>
 </testsuite>

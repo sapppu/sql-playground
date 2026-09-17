@@ -136,7 +136,11 @@ class WalCrashRecoveryTest {
         db1.getTable("crashdemo").setTransactionManager(tm);
         long txnId = tm.begin("demo-session");
         db1.getTable("crashdemo").insertRow(row(2L, "Uncommitted"), txnId);
-        assertTrue(namesOf(db1).contains("Uncommitted"), "sanity: txn sees its own write");
+        List<String> ownView = new ArrayList<>();
+        for (Map<String, Object> row : db1.getTable("crashdemo").getRows(txnId)) {
+            ownView.add(String.valueOf(row.get("name")));
+        }
+        assertTrue(ownView.contains("Uncommitted"), "sanity: txn sees its own write");
 
         // crash before COMMIT.
         InMemoryDatabase db2 = restart("crash.log");

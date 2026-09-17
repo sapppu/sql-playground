@@ -10,6 +10,12 @@ import java.util.concurrent.atomic.AtomicLong;
  * MVCC Transaction Manager.
  * Tracks active transactions via session IDs (for multi-request transactions).
  * When getCurrentTxn() returns 0, the system operates in auto-commit mode.
+ *
+ * Snapshot isolation: every transaction captures the commit sequence at
+ * BEGIN; a reader only sees versions committed at or before its snapshot,
+ * so concurrent commits never change an open transaction's view
+ * (repeatable reads). Auto-commit statements read the latest committed
+ * state.
  */
 @Component
 public class TransactionManager {
@@ -17,6 +23,9 @@ public class TransactionManager {
     private final AtomicLong txnCounter = new AtomicLong(1);
     private final ConcurrentHashMap<Long, String> activeTxns = new ConcurrentHashMap<>(); // txnId -> status
     private final ConcurrentHashMap<String, Long> sessionTxns = new ConcurrentHashMap<>(); // sessionId -> txnId
+    private final AtomicLong commitSeqCounter = new AtomicLong(1);
+    private final ConcurrentHashMap<Long, Long> beginSnapshots = new ConcurrentHashMap<>(); // txnId -> snapshot seq
+    private final ConcurrentHashMap<Long, Long> txnCommitSeq = new ConcurrentHashMap<>(); // txnId -> commit seq
 
     /**
      * Begin a new transaction for the given session.
@@ -28,6 +37,9 @@ public class TransactionManager {
         long txnId = txnCounter.getAndIncrement();
         activeTxns.put(txnId, "ACTIVE");
         sessionTxns.put(sessionId, txnId);
+        // Snapshot = last committed sequence: anything committing later
+        // gets a strictly greater number and stays invisible.
+        beginSnapshots.put(txnId, Math.max(0, commitSeqCounter.get() - 1));
         return txnId;
     }
 
@@ -38,6 +50,8 @@ public class TransactionManager {
         Long txnId = sessionTxns.remove(sessionId);
         if (txnId == null) throw new IllegalStateException("No active transaction for this session");
         activeTxns.put(txnId, "COMMITTED");
+        txnCommitSeq.put(txnId, commitSeqCounter.getAndIncrement());
+        beginSnapshots.remove(txnId);
         return txnId;
     }
 
@@ -48,7 +62,24 @@ public class TransactionManager {
         Long txnId = sessionTxns.remove(sessionId);
         if (txnId == null) throw new IllegalStateException("No active transaction for this session");
         activeTxns.put(txnId, "ROLLED_BACK");
+        beginSnapshots.remove(txnId);
         return txnId;
+    }
+
+    /**
+     * Commit sequence assigned at commit time; -1 if never committed.
+     * The executor stamps row versions with this after a successful commit.
+     */
+    public long getCommitSeq(long txnId) {
+        return txnCommitSeq.getOrDefault(txnId, -1L);
+    }
+
+    /**
+     * Snapshot sequence captured at BEGIN; defaults to the latest commit
+     * for unknown readers.
+     */
+    public long getSnapshotSeq(long txnId) {
+        return beginSnapshots.getOrDefault(txnId, Math.max(0, commitSeqCounter.get() - 1));
     }
 
     /**
@@ -83,46 +114,65 @@ public class TransactionManager {
 
     /**
      * A row version is visible to a reader if:
-     * 1. It was created by a committed transaction (or the reader's own txn)
-     * 2. It has NOT been deleted by a committed transaction
-     * 3. It was NOT created by a rolled-back transaction
+     * 1. It was created by the reader's own transaction (and not deleted by it)
+     * 2. It was created by a transaction committed at or before the
+     *    reader's snapshot — never by an active or rolled-back one
+     * 3. It was NOT deleted by a transaction committed at or before the snapshot
+     *
+     * <p>Rule 2 is repeatable reads: concurrent commits never move an
+     * open transaction's snapshot.
      */
     public boolean isVisible(RowVersion rv, long readerTxnId) {
-        // Row created by this reader's own transaction — always visible
+        return isVisible(rv, readerTxnId, getSnapshotSeq(readerTxnId));
+    }
+
+    public boolean isVisible(RowVersion rv, long readerTxnId, long snapshotSeq) {
+        // Own writes are visible — except rows this reader deleted itself.
         if (rv.createdByTxn == readerTxnId) {
-            // But only if not deleted by self
-            return rv.deletedByTxn == 0 || rv.deletedByTxn == readerTxnId;
+            return rv.deletedByTxn == 0;
         }
 
         // Row created by a rolled-back transaction — never visible
-        String creatorStatus = activeTxns.get(rv.createdByTxn);
-        if ("ROLLED_BACK".equals(creatorStatus)) {
+        if ("ROLLED_BACK".equals(activeTxns.get(rv.createdByTxn))) {
             return false;
         }
 
         // Row created by an active (uncommitted) transaction — not visible to others
-        if ("ACTIVE".equals(creatorStatus)) {
+        if ("ACTIVE".equals(activeTxns.get(rv.createdByTxn))) {
             return false;
         }
 
-        // Row created by a committed transaction — check if it was deleted
-        if (rv.deleted) {
-            // Deleted by this reader's own txn — not visible
-            if (rv.deletedByTxn == readerTxnId) return false;
-
-            // Deleted by a rolled-back txn — deletion doesn't count, row is visible
-            String deleterStatus = activeTxns.get(rv.deletedByTxn);
-            if ("ROLLED_BACK".equals(deleterStatus)) return true;
-
-            // Deleted by an active txn — deletion not yet committed, row still visible
-            if ("ACTIVE".equals(deleterStatus)) return true;
-
-            // Deleted by a committed txn — row is gone
+        // Committed creator: visible only if committed within the snapshot.
+        if (!committedAtOrBefore(rv.createdByTxn, rv.commitSeq, snapshotSeq)) {
             return false;
         }
+        if (!rv.deleted) {
+            return true;
+        }
 
-        // Created by committed txn, not deleted — visible
-        return true;
+        // Deleted by this reader's own txn — not visible
+        if (rv.deletedByTxn == readerTxnId) return false;
+
+        // Deleted by a rolled-back txn — deletion doesn't count, row is visible
+        String deleterStatus = activeTxns.get(rv.deletedByTxn);
+        if ("ROLLED_BACK".equals(deleterStatus)) return true;
+
+        // Deleted by an active txn — deletion not yet committed, row still visible
+        if ("ACTIVE".equals(deleterStatus)) return true;
+
+        // Deleted by a committed txn — gone only if the delete is within the snapshot.
+        return !committedAtOrBefore(rv.deletedByTxn, rv.deletedCommitSeq, snapshotSeq);
+    }
+
+    /**
+     * True when a -1 stamp means "committed long ago" (data that predates
+     * stamping or bypassed it): fall back to status so legacy rows stay
+     * visible instead of vanishing.
+     */
+    private boolean committedAtOrBefore(long txnId, long seq, long snapshotSeq) {
+        if (seq != -1) return seq <= snapshotSeq;
+        String status = activeTxns.get(txnId);
+        return !"ACTIVE".equals(status) && !"ROLLED_BACK".equals(status);
     }
 
     public boolean isRolledBack(long txnId) {

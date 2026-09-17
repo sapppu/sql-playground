@@ -3,6 +3,7 @@ com/sqlplayground/engine/WalCrashRecoveryTest.class
 com/sqlplayground/bench/JoinBenchmark.class
 com/sqlplayground/engine/JoinQualifierTest.class
 com/sqlplayground/engine/ExplainTransparencyTest.class
+com/sqlplayground/engine/SnapshotIsolationTest.class
 com/sqlplayground/bench/JoinBenchmark$Cell.class
 com/sqlplayground/engine/EngineTestBase.class
 com/sqlplayground/engine/NotNullTest.class
