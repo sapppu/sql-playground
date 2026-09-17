@@ -4,7 +4,9 @@ import { splitStatements, statementAtOffset } from "./sqlSplit.js";
 
 const SqlEditor = lazy(() => import("./SqlEditor.jsx"));
 
-const API = "/api";
+// Relative by default (same-origin via dev proxy / nginx / single container).
+// Set VITE_API_URL at build time for split hosting (e.g. static site + API service).
+const API = `${(import.meta.env.VITE_API_URL || "").replace(/\/$/, "")}/api`;
 
 const SAMPLE_QUERIES = [
   { label: "Select all", sql: "SELECT * FROM employees" },

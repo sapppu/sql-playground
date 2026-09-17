@@ -1,0 +1,35 @@
+# One-command local stack:  docker compose up --build
+# Frontend on http://localhost:${FRONTEND_PORT:-3000}, same-origin /api
+# proxied to the backend. Data persists in the sqlplayground-data volume.
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "${BACKEND_PORT:-8081}:8081"
+    environment:
+      # CHANGE ME in any shared/prod deployment:
+      JWT_SECRET: ${JWT_SECRET:-dev-local-secret-change-me-in-prod}
+      WAL_FILE_PATH: /app/data/wal.log
+      WAL_USER_DIR: /app/data/wal
+      USER_STORE_PATH: /app/data/users.json
+      QUERY_HISTORY_PATH: /app/data/history
+    volumes:
+      - sqlplayground-data:/app/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Empty keeps relative /api calls (same-origin through nginx below).
+        VITE_API_URL: ${VITE_API_URL:-}
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    environment:
+      BACKEND_URL: http://backend:8081
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  sqlplayground-data:

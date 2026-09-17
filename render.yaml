@@ -1,0 +1,32 @@
+# Render Blueprint: one-click deploy of the composed stack shape.
+# - backend: Docker web service (backend/Dockerfile), listens on $PORT.
+# - frontend: static site calling the backend's public URL. No extra CORS
+#   work needed: the API ships @CrossOrigin("*") (Bearer auth, no cookies),
+#   which is exactly what split-origin static+API hosting requires.
+# After first deploy, paste the frontend URL into the README live-demo link.
+services:
+  - type: web
+    name: sql-playground-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+
+  - type: web
+    name: sql-playground-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    plan: free
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      # Must match the backend service URL above if renamed:
+      - key: VITE_API_URL
+        value: https://sql-playground-backend.onrender.com

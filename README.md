@@ -49,6 +49,28 @@ npm run dev
 # Sign up for a local account when prompted — the backend must be running
 ```
 
+## Run locally with Docker
+
+The only step needed:
+
+```bash
+docker compose up --build
+# Frontend on http://localhost:3000, API on http://localhost:8081
+```
+
+What this starts: a `backend` service (multi-stage `backend/Dockerfile` — Maven+JDK build, slim JRE runtime) and a `frontend` service (`frontend/Dockerfile` — Vite build served by nginx, `/api/*` reverse-proxied to the backend so the browser stays same-origin). App data persists in the `sqlplayground-data` volume. Knobs via environment: `FRONTEND_PORT`, `BACKEND_PORT`, `JWT_SECRET` (change this in any shared deployment), `VITE_API_URL` (empty keeps same-origin calls).
+
+## Live demo
+
+No public URL yet — deploying needs one authenticated click that only the repo owner can do:
+
+1. Push this repo to GitHub (already at `github.com/sapppu/sql-playground`).
+2. In [Render](https://render.com): New → Blueprint → select the repo. `render.yaml` provisions the Docker backend plus the static frontend (already wired: `VITE_API_URL` points at the backend, free plans for both).
+3. Open the frontend URL, sign up, create a table, run a query, check the Plan tab, toggle the theme.
+4. Paste the frontend URL here as the live demo link.
+
+Free-tier note: Render spins the backend down after inactivity, so the first request after idle takes ~30–60s to wake up.
+
 ## Supported SQL
 
 | Statement        | Example |
