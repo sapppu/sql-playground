@@ -22,6 +22,8 @@ Backend (Spring Boot :8081)
     └── InMemoryDatabase — ConcurrentHashMap-backed table store
 ```
 
+> The one-page design walkthrough — parsing, planning, the measured 200-row join threshold, execution receipts, and WAL recovery — lives in [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## Prerequisites (Ubuntu)
 
 ```bash
