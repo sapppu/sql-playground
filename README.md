@@ -1,5 +1,7 @@
 # SQL Playground — Custom Java Query Engine
 
+[![CI](https://github.com/sapppu/sql-playground/actions/workflows/ci.yml/badge.svg)](https://github.com/sapppu/sql-playground/actions/workflows/ci.yml)
+
 A full-stack SQL playground backed by a hand-written Java SQL engine.
 Zero external databases, no Docker, no cloud dependencies.
 

@@ -9,6 +9,7 @@ import com.sqlplayground.engine.parser.Parser;
 import com.sqlplayground.engine.planner.QueryPlanner;
 import com.sqlplayground.engine.stats.StatisticsManager;
 import com.sqlplayground.model.Table;
+import com.sqlplayground.storage.InMemoryDatabase;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -87,5 +88,41 @@ class JoinStrategyTest extends EngineTestBase {
         assertEquals("nested_loop", QueryPlanner.chooseStrategy(199, 500));
         assertEquals("hash_join", QueryPlanner.chooseStrategy(200, 500));
         assertEquals("hash_join", QueryPlanner.chooseStrategy(1000, 200));
+    }
+
+    @Test
+    void plannerTrustsStaleStatsOverActualSize() {
+        // Stats analyzed when departments is small...
+        QueryPlanner.PlanNode before = findJoin(plan(
+            "SELECT * FROM employees JOIN departments ON employees.department = departments.name"));
+        assertEquals("NESTED_LOOP_JOIN", before.getOperation());
+
+        // ...then the table grows 100x without re-analyzing.
+        Table dept = db.getTable("departments");
+        for (int i = 4; i <= 300; i++) {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("id", (long) i);
+            row.put("name", "Dept" + i);
+            row.put("budget", 1000L);
+            row.put("location", "Floor 9");
+            dept.insertRow(row);
+        }
+        assertEquals(300, db.getTable("departments").getRows().size());
+
+        // Simulate staleness: stats snapshotted when departments had 3 rows,
+        // while the live table now holds 300.
+        StatisticsManager frozen = new StatisticsManager();
+        {
+            InMemoryDatabase small = new InMemoryDatabase();
+            small.seedSampleData();
+            frozen.analyzeAll(small);
+        }
+        assertEquals(3, frozen.getStats("departments").orElseThrow().rowCount);
+        QueryPlanner stalePlanner = new QueryPlanner(db, new IndexManager(), frozen);
+        QueryPlanner.PlanNode join = findJoin(stalePlanner.plan(
+            new Parser(new Lexer("SELECT * FROM employees JOIN departments ON employees.department = departments.name").tokenize()).parse()));
+        assertNotNull(join);
+        assertEquals("NESTED_LOOP_JOIN", join.getOperation(),
+            "with stale stats (3 departments) the planner must stay nested-loop despite 300 actual rows");
     }
 }

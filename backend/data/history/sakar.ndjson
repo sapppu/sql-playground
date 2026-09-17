@@ -1,2 +1,7 @@
 {"timestamp":1789627438336,"sql":"BEGIN","success":true,"message":"Transaction #1 started","rowCount":0,"elapsedMs":2}
 {"timestamp":1789627441513,"sql":"COMMIT","success":true,"message":"Transaction #1 committed","rowCount":0,"elapsedMs":0}
+{"timestamp":1789631785279,"sql":"-- SELECT employees.name, employees.salary, departments.budget\n-- FROM employees\n-- JOIN departments\n--   ON employees.department = departments.name\n-- WHERE employees.salary > 80000\n\ncreate table classroom(cno int primary key,cname varchar(20))","success":true,"message":"Table 'classroom' created","rowCount":0,"elapsedMs":9}
+{"timestamp":1789631830412,"sql":"INSERT INTO classroom values(12,'Vyas')","success":true,"message":"1 row(s) inserted","rowCount":0,"elapsedMs":2}
+{"timestamp":1789631845665,"sql":"SELECT * from classroom","success":true,"message":"1 row(s) returned","rowCount":1,"elapsedMs":2}
+{"timestamp":1789631859913,"sql":"BEGIN","success":true,"message":"Transaction #1 started","rowCount":0,"elapsedMs":0}
+{"timestamp":1789631861922,"sql":"COMMIT","success":true,"message":"Transaction #1 committed","rowCount":0,"elapsedMs":0}
