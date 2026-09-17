@@ -36,6 +36,30 @@ public class QueryPlanner {
         return buildRows >= HASH_JOIN_THRESHOLD ? "hash_join" : "nested_loop";
     }
 
+    /**
+     * Bench-only override for fair A/B timing: forces both planning and
+     * execution onto one strategy regardless of estimates. Not part of the
+     * running app's API surface — the benchmark sets it per config and
+     * clears it in a finally block. ThreadLocal so parallel runs can't leak.
+     */
+    private static final ThreadLocal<String> forcedStrategy = new ThreadLocal<>();
+
+    public static void forceStrategy(String strategy) {
+        if (!"hash_join".equals(strategy) && !"nested_loop".equals(strategy)) {
+            throw new IllegalArgumentException("strategy must be hash_join or nested_loop");
+        }
+        forcedStrategy.set(strategy);
+    }
+
+    public static void clearForcedStrategy() {
+        forcedStrategy.remove();
+    }
+
+    public static String effectiveStrategy(long leftEst, long rightEst) {
+        String forced = forcedStrategy.get();
+        return forced != null ? forced : chooseStrategy(leftEst, rightEst);
+    }
+
     /** Row-count estimate for a table: stats cache first, actual size fallback. */
     public long estimateRows(String tableName) {
         var stats = statisticsManager.getStats(tableName);
@@ -144,7 +168,7 @@ public class QueryPlanner {
         for (AstNode.JoinClause join : stmt.joins) {
             long rightEst = estimateRows(join.rightTable);
 
-            String strategy = chooseStrategy(leftEst, rightEst);
+            String strategy = effectiveStrategy(leftEst, rightEst);
             String operation = "hash_join".equals(strategy) ? "HASH_JOIN" : "NESTED_LOOP_JOIN";
             long buildRows = Math.min(leftEst, rightEst);
             // Build side is the smaller input; probe side is the larger one.

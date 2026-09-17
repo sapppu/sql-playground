@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="380" viewBox="0 0 860 380"><rect width="860" height="380" fill="#FCFBF7"/>
+<text x="244.0" y="20" text-anchor="middle" font-size="14" font-weight="600" fill="#26251F" font-family="sans-serif">Scale: employees joined to 3 departments</text>
+<line x1="64" y1="336.0" x2="424.0" y2="336.0" stroke="#D8D0BE" stroke-width="1"/>
+<text x="56" y="340.0" text-anchor="end" font-size="11" fill="#857F73" font-family="sans-serif">0.1</text>
+<line x1="64" y1="260.5" x2="424.0" y2="260.5" stroke="#D8D0BE" stroke-width="1"/>
+<text x="56" y="264.5" text-anchor="end" font-size="11" fill="#857F73" font-family="sans-serif">1</text>
+<line x1="64" y1="185.0" x2="424.0" y2="185.0" stroke="#D8D0BE" stroke-width="1"/>
+<text x="56" y="189.0" text-anchor="end" font-size="11" fill="#857F73" font-family="sans-serif">10</text>
+<line x1="64" y1="109.5" x2="424.0" y2="109.5" stroke="#D8D0BE" stroke-width="1"/>
+<text x="56" y="113.5" text-anchor="end" font-size="11" fill="#857F73" font-family="sans-serif">100</text>
+<line x1="64" y1="34.0" x2="424.0" y2="34.0" stroke="#D8D0BE" stroke-width="1"/>
+<text x="56" y="38.0" text-anchor="end" font-size="11" fill="#857F73" font-family="sans-serif">1000</text>
+<text x="14" y="185.0" text-anchor="middle" font-size="11" fill="#857F73" font-family="sans-serif" transform="rotate(-90 14 185.0)">median ms (log)</text>
+<text x="72.0" y="354" text-anchor="middle" font-size="11" fill="#857F73" font-family="sans-serif">10</text>
+<text x="158.0" y="354" text-anchor="middle" font-size="11" fill="#857F73" font-family="sans-serif">100</text>
+<text x="244.0" y="354" text-anchor="middle" font-size="11" fill="#857F73" font-family="sans-serif">1k</text>
+<text x="330.0" y="354" text-anchor="middle" font-size="11" fill="#857F73" font-family="sans-serif">10k</text>
+<text x="416.0" y="354" text-anchor="middle" font-size="11" fill="#857F73" font-family="sans-serif">100k</text>
+<path d="M72.0,287.4 L106.2,288.9 L132.1,271.7 L158.0,268.6 L183.9,247.6 L218.1,239.5 L244.0,216.8 L330.0,169.2 L416.0,117.5" fill="none" stroke="#31AAA9" stroke-width="2.5"/>
+<circle cx="72.0" cy="287.4" r="4" fill="#31AAA9"/>
+<circle cx="106.2" cy="288.9" r="4" fill="#31AAA9"/>
+<circle cx="132.1" cy="271.7" r="4" fill="#31AAA9"/>
+<circle cx="158.0" cy="268.6" r="4" fill="#31AAA9"/>
+<circle cx="183.9" cy="247.6" r="4" fill="#31AAA9"/>
+<circle cx="218.1" cy="239.5" r="4" fill="#31AAA9"/>
+<circle cx="244.0" cy="216.8" r="4" fill="#31AAA9"/>
+<circle cx="330.0" cy="169.2" r="4" fill="#31AAA9"/>
+<circle cx="416.0" cy="117.5" r="4" fill="#31AAA9"/>
+<text x="408.0" y="121.5" text-anchor="end" font-size="11" font-weight="600" fill="#31AAA9" font-family="sans-serif">hash_join</text>
+<path d="M72.0,278.9 L106.2,259.9 L132.1,255.6 L158.0,242.2 L183.9,221.2 L218.1,203.8 L244.0,202.7 L330.0,154.6 L416.0,74.0" fill="none" stroke="#6C1A1A" stroke-width="2.5"/>
+<circle cx="72.0" cy="278.9" r="4" fill="#6C1A1A"/>
+<circle cx="106.2" cy="259.9" r="4" fill="#6C1A1A"/>
+<circle cx="132.1" cy="255.6" r="4" fill="#6C1A1A"/>
+<circle cx="158.0" cy="242.2" r="4" fill="#6C1A1A"/>
+<circle cx="183.9" cy="221.2" r="4" fill="#6C1A1A"/>
+<circle cx="218.1" cy="203.8" r="4" fill="#6C1A1A"/>
+<circle cx="244.0" cy="202.7" r="4" fill="#6C1A1A"/>
+<circle cx="330.0" cy="154.6" r="4" fill="#6C1A1A"/>
+<circle cx="416.0" cy="74.0" r="4" fill="#6C1A1A"/>
+<text x="408.0" y="78.0" text-anchor="end" font-size="11" font-weight="600" fill="#6C1A1A" font-family="sans-serif">nested_loop</text>
+<text x="244.0" y="370" text-anchor="middle" font-size="11" fill="#857F73" font-family="sans-serif">rows (log scale)</text>
+<text x="664.0" y="20" text-anchor="middle" font-size="14" font-weight="600" fill="#26251F" font-family="sans-serif">Build side sweep: 2000 employees x N departments</text>
+<line x1="484.0" y1="314.9" x2="844.0" y2="314.9" stroke="#D8D0BE" stroke-width="1"/>
+<line x1="484.0" y1="244.6" x2="844.0" y2="244.6" stroke="#D8D0BE" stroke-width="1"/>
+<line x1="484.0" y1="174.4" x2="844.0" y2="174.4" stroke="#D8D0BE" stroke-width="1"/>
+<line x1="484.0" y1="104.2" x2="844.0" y2="104.2" stroke="#D8D0BE" stroke-width="1"/>
+<line x1="484.0" y1="34.0" x2="844.0" y2="34.0" stroke="#D8D0BE" stroke-width="1"/>
+<text x="492.0" y="354" text-anchor="middle" font-size="11" fill="#857F73" font-family="sans-serif">10</text>
+<text x="641.5" y="354" text-anchor="middle" font-size="11" fill="#857F73" font-family="sans-serif">100</text>
+<text x="791.0" y="354" text-anchor="middle" font-size="11" fill="#857F73" font-family="sans-serif">1k</text>
+<text x="836.0" y="354" text-anchor="middle" font-size="11" fill="#857F73" font-family="sans-serif">2k</text>
+<line x1="686.5" y1="34" x2="686.5" y2="336" stroke="#857F73" stroke-width="1" stroke-dasharray="4 3"/>
+<text x="690.5" y="46" font-size="10" fill="#857F73" font-family="sans-serif">threshold 200</text>
+<path d="M492.0,295.5 L596.5,300.9 L686.5,300.5 L746.0,298.3 L836.0,290.4" fill="none" stroke="#31AAA9" stroke-width="2.5"/>
+<circle cx="492.0" cy="295.5" r="4" fill="#31AAA9"/>
+<circle cx="596.5" cy="300.9" r="4" fill="#31AAA9"/>
+<circle cx="686.5" cy="300.5" r="4" fill="#31AAA9"/>
+<circle cx="746.0" cy="298.3" r="4" fill="#31AAA9"/>
+<circle cx="836.0" cy="290.4" r="4" fill="#31AAA9"/>
+<text x="828.0" y="294.4" text-anchor="end" font-size="11" font-weight="600" fill="#31AAA9" font-family="sans-serif">hash_join</text>
+<path d="M492.0,237.3 L596.5,190.2 L686.5,148.3 L746.0,120.5 L836.0,77.0" fill="none" stroke="#6C1A1A" stroke-width="2.5"/>
+<circle cx="492.0" cy="237.3" r="4" fill="#6C1A1A"/>
+<circle cx="596.5" cy="190.2" r="4" fill="#6C1A1A"/>
+<circle cx="686.5" cy="148.3" r="4" fill="#6C1A1A"/>
+<circle cx="746.0" cy="120.5" r="4" fill="#6C1A1A"/>
+<circle cx="836.0" cy="77.0" r="4" fill="#6C1A1A"/>
+<text x="828.0" y="81.0" text-anchor="end" font-size="11" font-weight="600" fill="#6C1A1A" font-family="sans-serif">nested_loop</text>
+<text x="664.0" y="370" text-anchor="middle" font-size="11" fill="#857F73" font-family="sans-serif">rows (log scale)</text>
+<line x1="300.0" y1="372" x2="322.0" y2="372" stroke="#31AAA9" stroke-width="2.5"/><circle cx="311.0" cy="372" r="4" fill="#31AAA9"/><text x="328.0" y="376" font-size="12" fill="#26251F" font-family="sans-serif">hash_join</text><line x1="430.0" y1="372" x2="452.0" y2="372" stroke="#6C1A1A" stroke-width="2.5"/><circle cx="441.0" cy="372" r="4" fill="#6C1A1A"/><text x="458.0" y="376" font-size="12" fill="#26251F" font-family="sans-serif">nested_loop</text></svg>

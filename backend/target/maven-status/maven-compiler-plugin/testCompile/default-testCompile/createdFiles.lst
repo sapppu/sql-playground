@@ -1,6 +1,8 @@
 com/sqlplayground/engine/RangeComparisonTest.class
+com/sqlplayground/bench/JoinBenchmark.class
 com/sqlplayground/engine/JoinQualifierTest.class
 com/sqlplayground/engine/ExplainTransparencyTest.class
+com/sqlplayground/bench/JoinBenchmark$Cell.class
 com/sqlplayground/engine/EngineTestBase.class
 com/sqlplayground/engine/NotNullTest.class
 com/sqlplayground/engine/WriteAheadLogTest.class

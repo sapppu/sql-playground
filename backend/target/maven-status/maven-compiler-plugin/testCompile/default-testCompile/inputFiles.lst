@@ -1,4 +1,5 @@
 /home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/test/java/com/sqlplayground/engine/RangeComparisonTest.java
+/home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/test/java/com/sqlplayground/bench/JoinBenchmark.java
 /home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/test/java/com/sqlplayground/engine/JoinQualifierTest.java
 /home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/test/java/com/sqlplayground/engine/JoinStrategyTest.java
 /home/sappu/MyProjects/SpringBootProjects/sql-playground/backend/src/test/java/com/sqlplayground/engine/EngineTestBase.java

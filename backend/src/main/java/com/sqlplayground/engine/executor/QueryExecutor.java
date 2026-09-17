@@ -276,7 +276,7 @@ public class QueryExecutor {
             long rightEst = statisticsManager.getStats(rightTableName)
                 .map(s -> s.rowCount)
                 .orElse((long) rightTable.getRows(txnId).size());
-            String strategy = QueryPlanner.chooseStrategy(result.size(), rightEst);
+            String strategy = QueryPlanner.effectiveStrategy(result.size(), rightEst);
 
             if ("hash_join".equals(strategy)) {
                 result = hashJoin(result, rightTableName, rightTable,
