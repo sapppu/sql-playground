@@ -98,6 +98,7 @@ public class SqlController {
             response.put("error",     null);
             response.put("sessionId", sessionId);
             response.put("txnActive", txnManager.hasActiveTxn(sessionId));
+            response.put("txnId", txnManager.getCurrentTxnId(sessionId));
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
@@ -116,6 +117,7 @@ public class SqlController {
             response.put("error",     e.getMessage());
             response.put("sessionId", sessionId);
             response.put("txnActive", txnManager.hasActiveTxn(sessionId));
+            response.put("txnId", txnManager.getCurrentTxnId(sessionId));
             return ResponseEntity.ok(response);
         }
     }

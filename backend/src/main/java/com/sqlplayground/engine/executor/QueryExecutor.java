@@ -5,8 +5,10 @@ import com.sqlplayground.engine.index.BTreeIndex;
 import com.sqlplayground.engine.index.IndexManager;
 import com.sqlplayground.engine.mvcc.TransactionManager;
 import com.sqlplayground.engine.parser.AstNode;
+import com.sqlplayground.engine.planner.QueryPlanner;
 import com.sqlplayground.engine.stats.ColumnStats;
 import com.sqlplayground.engine.stats.StatisticsManager;
+import com.sqlplayground.engine.util.Values;
 import com.sqlplayground.engine.wal.WriteAheadLog;
 import com.sqlplayground.model.Table;
 import com.sqlplayground.storage.InMemoryDatabase;
@@ -225,8 +227,21 @@ public class QueryExecutor {
 
         for (AstNode.JoinClause join : joins) {
             String rightTableName = join.rightTable;
+            Table rightTable = db.getTable(rightTableName);
             List<Map<String, Object>> rightRows =
-                new ArrayList<>(db.getTable(rightTableName).getRows(txnId));
+                new ArrayList<>(rightTable.getRows(txnId));
+
+            // Same rule as the planner: build side is the smaller input,
+            // estimated from stats with actual-size fallback.
+            long rightEst = statisticsManager.getStats(rightTableName)
+                .map(s -> s.rowCount).orElse((long) rightRows.size());
+            String strategy = QueryPlanner.chooseStrategy(result.size(), rightEst);
+
+            if ("hash_join".equals(strategy)) {
+                result = hashJoin(result, rightTableName, rightTable,
+                    join.onCondition, join.joinType, txnId);
+                continue;
+            }
 
             List<Map<String, Object>> joined = new ArrayList<>();
 
@@ -359,19 +374,21 @@ public class QueryExecutor {
             return nestedLoopJoin(left, rightTableName, rightTable, onCondition, joinType, txnId);
         }
 
-        // Build hash map on right table
+        // Build hash map on right table (raw rows use unqualified keys)
         Map<String, List<Map<String, Object>>> hashMap = new LinkedHashMap<>();
         for (Map<String, Object> rRow : rightTable.getRows(txnId)) {
-            Object keyVal = rRow.get(rightKeyCol);
-            String key = keyVal == null ? "__null__" : keyVal.toString().toLowerCase();
-            hashMap.computeIfAbsent(key, k -> new ArrayList<>()).add(rRow);
+            hashMap.computeIfAbsent(hashKey(rRow.get(rightKeyCol)), k -> new ArrayList<>()).add(rRow);
         }
 
         List<Map<String, Object>> result = new ArrayList<>();
         for (Map<String, Object> lRow : left) {
+            // First join: left rows are raw (unqualified keys). Chained joins:
+            // left rows are merged (qualified keys present). Try both.
             Object lKeyVal = lRow.get(leftKeyCol);
-            String lKey = lKeyVal == null ? "__null__" : lKeyVal.toString().toLowerCase();
-            List<Map<String, Object>> matches = hashMap.getOrDefault(lKey, Collections.emptyList());
+            if (lKeyVal == null && leftKeyCol.contains(".")) {
+                lKeyVal = lRow.get(leftKeyCol.substring(leftKeyCol.indexOf('.') + 1));
+            }
+            List<Map<String, Object>> matches = hashMap.getOrDefault(hashKey(lKeyVal), Collections.emptyList());
 
             if (!matches.isEmpty()) {
                 for (Map<String, Object> rRow : matches) {
@@ -395,8 +412,18 @@ public class QueryExecutor {
         return result;
     }
 
-    private List<String> resolveJoinColumnNames(List<AstNode> cols, List<Map<String, Object>> rows) {
-        if (cols.size() == 1 && cols.get(0).type == AstNode.NodeType.WILDCARD) {
+    /**
+     * Hash key for equi-joins: numbers normalize by double value so mixed
+     * boxed types (Long 5 vs Double 5.0) hash together; everything else
+     * matches case-insensitively, mirroring {@link Values}.
+     */
+    private String hashKey(Object val) {
+        if (val == null) return "__null__";
+        if (val instanceof Number) return Double.toString(((Number) val).doubleValue());
+        return val.toString().toLowerCase();
+    }
+
+    private List<String> resolveJoinColumnNames(List<AstNode> cols, List<Map<String, Object>> rows) {        if (cols.size() == 1 && cols.get(0).type == AstNode.NodeType.WILDCARD) {
             if (rows.isEmpty()) return Collections.emptyList();
             // Return all unique keys preserving order, but skip unqualified duplicates
             List<String> result = new ArrayList<>();
@@ -714,6 +741,7 @@ public class QueryExecutor {
             row -> {
                 for (AstNode.Assignment a : stmt.assignments)
                     row.put(a.column, evalExpr(a.value, row));
+                table.validateNotNull(row);
                 if (txnId == 0) {
                     walAppend("UPDATE", stmt.tableName, new LinkedHashMap<>(row));
                 }
@@ -731,6 +759,17 @@ public class QueryExecutor {
 
         if (node instanceof AstNode.ColumnRef) {
             AstNode.ColumnRef cr = (AstNode.ColumnRef) node;
+            // Qualified reference (table.column): prefer the qualified key so a
+            // join's right-table column never resolves to a colliding unqualified
+            // left-table value. Fall back to unqualified for non-join rows.
+            if (cr.table != null) {
+                String q = cr.table + "." + cr.column;
+                if (row.containsKey(q)) return row.get(q);
+                String ql = cr.table.toLowerCase() + "." + cr.column;
+                if (row.containsKey(ql)) return row.get(ql);
+                String qll = cr.table.toLowerCase() + "." + cr.column.toLowerCase();
+                if (row.containsKey(qll)) return row.get(qll);
+            }
             Object val = row.get(cr.column);
             if (val == null) val = row.get(cr.column.toLowerCase());
             return val;
@@ -797,17 +836,11 @@ public class QueryExecutor {
     }
 
     private boolean objectsEqual(Object a, Object b) {
-        if (a == null && b == null) return true;
-        if (a == null || b == null) return false;
-        if (a instanceof Number && b instanceof Number)
-            return toDouble(a) == toDouble(b);
-        return a.toString().equalsIgnoreCase(b.toString());
+        return Values.equalValues(a, b);
     }
 
     private int compare(Object a, Object b) {
-        if (a instanceof Number && b instanceof Number)
-            return Double.compare(toDouble(a), toDouble(b));
-        return String.valueOf(a).compareToIgnoreCase(String.valueOf(b));
+        return Values.compare(a, b);
     }
 
     @SuppressWarnings("unchecked")

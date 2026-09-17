@@ -209,12 +209,22 @@ public class Parser {
         String name = expect(TokenType.IDENTIFIER).value;
         String type = consume().value.toUpperCase();
         if (check(TokenType.LPAREN)) { consume(); consume(); consume(); }
+        // Optional constraint clause, order-independent: PRIMARY KEY,
+        // NOT NULL, or explicit NULL. NOT/NULL lex as keyword tokens,
+        // PRIMARY/KEY lex as identifiers — accept both by shape.
         boolean pk = false, notNull = false;
-        while (check(TokenType.IDENTIFIER)) {
-            String kw = peek().value.toUpperCase();
-            if (kw.equals("PRIMARY")) { consume(); expect(TokenType.IDENTIFIER); pk = true; }
-            else if (kw.equals("NOT")) { consume(); consume(); notNull = true; }
-            else break;
+        while (true) {
+            if (check(TokenType.IDENTIFIER) && peek().value.equalsIgnoreCase("PRIMARY")) {
+                consume();
+                if (check(TokenType.IDENTIFIER) && peek().value.equalsIgnoreCase("KEY")) consume();
+                pk = true;
+            } else if (check(TokenType.NOT)) {
+                consume();
+                expect(TokenType.NULL);
+                notNull = true;
+            } else if (check(TokenType.NULL)) {
+                consume(); // explicit nullable — default, no flag needed
+            } else break;
         }
         return new AstNode.ColumnDef(name, type, pk, notNull);
     }

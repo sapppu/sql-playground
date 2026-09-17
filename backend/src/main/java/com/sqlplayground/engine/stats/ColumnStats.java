@@ -1,5 +1,7 @@
 package com.sqlplayground.engine.stats;
 
+import com.sqlplayground.engine.util.Values;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,13 +43,13 @@ public class ColumnStats {
             distinctValues.add(val);
             if (val instanceof Comparable) {
                 sortedValues.add((Comparable) val);
-                if (min == null || ((Comparable) val).compareTo(min) < 0) min = val;
-                if (max == null || ((Comparable) val).compareTo(max) > 0) max = val;
+                if (min == null || Values.compare(val, min) < 0) min = val;
+                if (max == null || Values.compare(val, max) > 0) max = val;
             }
         }
 
         long ndv = distinctValues.size();
-        Collections.sort(sortedValues);
+        sortedValues.sort(Values::compare);
 
         // Pick 10 evenly-spaced samples for histogram
         List<Object> buckets = new ArrayList<>();
@@ -74,10 +76,10 @@ public class ColumnStats {
             case "<":
             case "<=":
                 if (minValue instanceof Comparable && literal instanceof Comparable) {
-                    int cmp = ((Comparable) literal).compareTo(minValue);
+                    int cmp = Values.compare(literal, minValue);
                     if (cmp < 0) return 0.01;
                     if (maxValue instanceof Comparable) {
-                        int cmp2 = ((Comparable) literal).compareTo(maxValue);
+                        int cmp2 = Values.compare(literal, maxValue);
                         if (cmp2 >= 0) return 0.99;
                     }
                     return 0.3;

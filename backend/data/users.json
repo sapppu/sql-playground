@@ -35,6 +35,10 @@
   "hashedPassword" : "$2a$10$OogPHzKqiqXr8mxE7a1V1enBtFkjfB8v6INjUBBJ4k4YaluR1MblO",
   "createdAt" : 1779193944451
 }, {
+  "username" : "swapnaj",
+  "hashedPassword" : "$2a$10$6rvrt4vYF8Z.j5WEpmyF2edVhuieiR1gMt2rDQrFjxtswtHSxcmbu",
+  "createdAt" : 1789579154855
+}, {
   "username" : "charlie",
   "hashedPassword" : "$2a$10$OjR7SN/9iqVRbuz2ZXU2r.DWFMwRAXu77bX5DRkl9GdqGHFkGbrV6",
   "createdAt" : 1779193952120

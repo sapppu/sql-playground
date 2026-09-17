@@ -73,6 +73,7 @@ public class Table {
             if (val == null && col.isPrimaryKey()) val = pkCounter++;
             normalized.put(col.getName(), val);
         }
+        validateNotNull(normalized);
         if (txnId != 0 && txnManager != null) {
             RowVersion rv = new RowVersion(txnId, normalized);
             List<RowVersion> chain = new ArrayList<>();
@@ -151,6 +152,16 @@ public class Table {
         rows.clear();
         versionChains.clear();
         pkCounter = 1;
+    }
+
+    /** Reject rows that violate a NOT NULL column constraint. */
+    public void validateNotNull(Map<String, Object> row) {
+        for (Column col : columns) {
+            if (col.isNotNull() && row.get(col.getName()) == null) {
+                throw new IllegalArgumentException(
+                    "Column '" + col.getName() + "' cannot be null (NOT NULL constraint on table '" + name + "')");
+            }
+        }
     }
 
     public static class Column {

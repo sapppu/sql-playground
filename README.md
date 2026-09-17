@@ -12,7 +12,7 @@ Browser (React + Vite :3000)
     ├── GET  /api/schema  → In-memory table catalog
     └── POST /api/schema/reset → Reseed sample data
 
-Backend (Spring Boot :8080)
+Backend (Spring Boot :8081)
     ├── Lexer         — tokenises raw SQL
     ├── Parser        — recursive descent → AST
     ├── QueryPlanner  — cost-based execution plan tree
@@ -24,10 +24,10 @@ Backend (Spring Boot :8080)
 
 ```bash
 sudo apt update
-sudo apt install openjdk-21-jdk maven nodejs npm
-java -version    # should show 21
+sudo apt install openjdk-17-jdk maven nodejs npm
+java -version    # should show 17
 mvn -version
-node -version    # should show 18+
+node --version   # should show 18+
 ```
 
 ## Run the backend
@@ -35,7 +35,7 @@ node -version    # should show 18+
 ```bash
 cd sql-playground/backend
 mvn spring-boot:run
-# Starts on http://localhost:8080
+# Starts on http://localhost:8081
 # Sample data (employees, departments, products) seeded automatically
 ```
 
@@ -46,6 +46,7 @@ cd sql-playground/frontend
 npm install
 npm run dev
 # Opens on http://localhost:3000
+# Sign up for a local account when prompted — the backend must be running
 ```
 
 ## Supported SQL
@@ -64,16 +65,21 @@ npm run dev
 | UPDATE           | `UPDATE employees SET salary = 99000 WHERE name = 'Alice'` |
 | DELETE           | `DELETE FROM employees WHERE active = false` |
 | DROP TABLE       | `DROP TABLE students` |
+| JOIN             | `SELECT employees.name, departments.budget FROM employees JOIN departments ON employees.department = departments.name` |
+| Transactions     | `BEGIN` `COMMIT` `ROLLBACK` |
+| CREATE/DROP INDEX| `CREATE INDEX idx_salary ON employees (salary)` |
+| ANALYZE          | `ANALYZE employees` |
 
 ## Frontend features
 
-- **Schema browser** — expandable table/column tree with types and PK/NN indicators
-- **SQL editor** — multi-line textarea with Tab indent, Ctrl+Enter to run
-- **Example queries** — one-click query bar with 12 sample statements
-- **Results tab** — paginated grid with type-aware cell colouring
-- **Plan tab** — interactive execution plan tree (expandable nodes with cost stats)
+- **Schema browser** — expandable table/column tree with types and PK/NN/IDX indicators
+- **SQL editor** — Monaco editor with schema-aware autocomplete, Ctrl+Enter to run
+- **Example queries** — one-click query bar with 8 sample statements
+- **Results tab** — scrollable grid with type-aware cell colouring
+- **Plan tab** — interactive execution plan tree (expandable nodes with cost stats, per-node stats drawer, join strategy badges)
 - **Tokens tab** — colour-coded token stream from the Java lexer
 - **Reset button** — restores all sample data in one click
+- **Analyze all button** — recomputes table statistics for the planner
 
 ## Sample queries to try
 

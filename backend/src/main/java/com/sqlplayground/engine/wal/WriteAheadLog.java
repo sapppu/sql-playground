@@ -1,6 +1,8 @@
 package com.sqlplayground.engine.wal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sqlplayground.model.Table;
+import com.sqlplayground.storage.InMemoryDatabase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -148,4 +150,90 @@ public class WriteAheadLog {
 
     public long getNextSequence() { return sequenceCounter.get(); }
     public int size()             { return inMemoryLog.size(); }
+
+    /**
+     * Re-applies logged mutations to a database in sequence order.
+     * INSERT re-inserts the row payload; DELETE removes rows by PK;
+     * UPDATE re-applies new values by PK. Unknown/corrupt entries are
+     * logged and skipped so one bad entry never blocks recovery.
+     */
+    public void replay(InMemoryDatabase db) {
+        List<WalEntry> sorted = new ArrayList<>(inMemoryLog);
+        sorted.sort(Comparator.comparingLong(WalEntry::getSequenceNumber));
+        for (WalEntry entry : sorted) {
+            try {
+                replayEntry(db, entry);
+            } catch (Exception e) {
+                log.warn("Skipping WAL entry seq={} op={} table={}: {}",
+                    entry.getSequenceNumber(), entry.getOperation(),
+                    entry.getTableName(), e.getMessage());
+            }
+        }
+    }
+
+    private void replayEntry(InMemoryDatabase db, WalEntry entry) {
+        String op    = entry.getOperation();
+        String table = entry.getTableName();
+        Map<String, Object> payload = entry.getPayload();
+
+        if ("CHECKPOINT".equals(op)) return;
+
+        if ("CREATE_TABLE".equals(op)) {
+            if (!db.tableExists(table)) {
+                List<Table.Column> cols = new ArrayList<>();
+                Object colDefs = payload.get("columns");
+                if (colDefs instanceof List) {
+                    for (Object colDef : (List<?>) colDefs) {
+                        if (colDef instanceof Map) {
+                            Map<?, ?> cd = (Map<?, ?>) colDef;
+                            cols.add(new Table.Column(
+                                String.valueOf(cd.get("name")),
+                                String.valueOf(cd.get("type")),
+                                Boolean.TRUE.equals(cd.get("primaryKey")),
+                                Boolean.TRUE.equals(cd.get("notNull"))
+                            ));
+                        }
+                    }
+                }
+                if (!cols.isEmpty()) db.createTable(new Table(table, cols));
+            }
+            return;
+        }
+
+        if ("DROP_TABLE".equals(op)) {
+            if (db.tableExists(table)) db.dropTable(table);
+            return;
+        }
+
+        if ("INSERT".equals(op)) {
+            if (db.tableExists(table)) {
+                db.getTable(table).insertRow(payload, 0L);
+            }
+            return;
+        }
+
+        if ("DELETE".equals(op)) {
+            if (db.tableExists(table)) {
+                Object pkVal = payload.get("id");
+                db.getTable(table).deleteRows(
+                    row -> pkVal != null && pkVal.toString().equals(
+                        row.getOrDefault("id", "").toString()),
+                    0L
+                );
+            }
+            return;
+        }
+
+        if ("UPDATE".equals(op)) {
+            if (db.tableExists(table)) {
+                Object pkVal = payload.get("id");
+                db.getTable(table).updateRows(
+                    row -> pkVal != null && pkVal.toString().equals(
+                        row.getOrDefault("id", "").toString()),
+                    row -> row.putAll(payload),
+                    0L
+                );
+            }
+        }
+    }
 }

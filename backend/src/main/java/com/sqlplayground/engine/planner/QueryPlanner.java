@@ -12,6 +12,9 @@ import java.util.stream.Collectors;
 @Component
 public class QueryPlanner {
 
+    /** Right/left row-count estimate at or above this uses a hash join. */
+    public static final int HASH_JOIN_THRESHOLD = 200;
+
     private InMemoryDatabase db;
     private final IndexManager indexManager;
     private final StatisticsManager statisticsManager;
@@ -20,6 +23,25 @@ public class QueryPlanner {
         this.db = db;
         this.indexManager = indexManager;
         this.statisticsManager = statisticsManager;
+    }
+
+    /**
+     * Strategy selection shared by planner and executor: the build side is
+     * the smaller input (per cost-based convention) and its row-count
+     * estimate decides. Estimates come from stats with actual-size fallback
+     * at the call sites.
+     */
+    public static String chooseStrategy(long leftEst, long rightEst) {
+        long buildRows = Math.min(leftEst, rightEst);
+        return buildRows >= HASH_JOIN_THRESHOLD ? "hash_join" : "nested_loop";
+    }
+
+    /** Row-count estimate for a table: stats cache first, actual size fallback. */
+    public long estimateRows(String tableName) {
+        var stats = statisticsManager.getStats(tableName);
+        if (stats.isPresent()) return stats.get().rowCount;
+        if (db.tableExists(tableName)) return db.getTable(tableName).getRows().size();
+        return 0;
     }
 
     public PlanNode planWith(AstNode ast, InMemoryDatabase userDb) {
@@ -111,24 +133,39 @@ public class QueryPlanner {
         }
 
         // ---- JOIN plan nodes ----
+        // Node operation carries the STRATEGY (HASH_JOIN / NESTED_LOOP_JOIN);
+        // the join TYPE (INNER / LEFT) rides along in stats as join_type.
+        long leftEst = tableSize;
+        String leftName = tableName;
         for (AstNode.JoinClause join : stmt.joins) {
-            int rightSize = db.tableExists(join.rightTable)
-                ? db.getTable(join.rightTable).getRows().size() : 0;
+            long rightEst = estimateRows(join.rightTable);
+
+            String strategy = chooseStrategy(leftEst, rightEst);
+            String operation = "hash_join".equals(strategy) ? "HASH_JOIN" : "NESTED_LOOP_JOIN";
+            long buildRows = Math.min(leftEst, rightEst);
+            // Build side is the smaller input; probe side is the larger one.
+            boolean rightIsBuild = rightEst <= leftEst;
 
             Map<String, Object> joinStats = new LinkedHashMap<>();
-            joinStats.put("type", join.joinType);
+            joinStats.put("join_type", join.joinType);
+            joinStats.put("left_table", leftName);
             joinStats.put("right_table", join.rightTable);
-            joinStats.put("right_rows", rightSize);
-            joinStats.put("strategy", "nested_loop");
+            joinStats.put("strategy", strategy);
+            joinStats.put("estimated_rows", buildRows);
+            joinStats.put("build_table", rightIsBuild ? join.rightTable : leftName);
+            joinStats.put("probe_table", rightIsBuild ? leftName : join.rightTable);
             joinStats.put("on", describeExpr(join.onCondition));
 
             node = new PlanNode(
-                join.joinType + "_JOIN",
+                operation,
                 join.joinType + " JOIN " + join.rightTable
-                    + " ON " + describeExpr(join.onCondition),
+                    + " ON " + describeExpr(join.onCondition)
+                    + " [" + strategy + "]",
                 Collections.singletonList(node),
                 joinStats
             );
+            leftEst = Math.max(leftEst, rightEst);
+            leftName = "intermediate";
         }
 
         // FILTER

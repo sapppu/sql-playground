@@ -1,5 +1,7 @@
 package com.sqlplayground.engine.index;
 
+import com.sqlplayground.engine.util.Values;
+
 import java.util.*;
 
 /**
@@ -39,10 +41,10 @@ public class BTreeIndex {
         int i = node.keys.size() - 1;
 
         if (node.isLeaf) {
-            // Find position for key
-            while (i >= 0 && key.compareTo(node.keys.get(i)) < 0) i--;
+            // Find position for key (numeric-safe: mixed Long/Double keys coexist)
+            while (i >= 0 && Values.compare(key, node.keys.get(i)) < 0) i--;
 
-            if (i >= 0 && key.compareTo(node.keys.get(i)) == 0) {
+            if (i >= 0 && Values.compare(key, node.keys.get(i)) == 0) {
                 // Duplicate key — append row to existing list
                 node.values.get(i).add(row);
             } else {
@@ -53,12 +55,12 @@ public class BTreeIndex {
                 node.values.add(i + 1, rowList);
             }
         } else {
-            while (i >= 0 && key.compareTo(node.keys.get(i)) < 0) i--;
+            while (i >= 0 && Values.compare(key, node.keys.get(i)) < 0) i--;
             i++;
 
             if (node.children.get(i).isFull()) {
                 splitChild(node, i, node.children.get(i));
-                if (key.compareTo(node.keys.get(i)) > 0) i++;
+                if (Values.compare(key, node.keys.get(i)) > 0) i++;
             }
             insertNonFull(node.children.get(i), key, row);
         }
@@ -112,9 +114,9 @@ public class BTreeIndex {
     @SuppressWarnings("unchecked")
     private List<Map<String, Object>> search(BTreeNode node, Comparable key) {
         int i = 0;
-        while (i < node.keys.size() && key.compareTo(node.keys.get(i)) > 0) i++;
+        while (i < node.keys.size() && Values.compare(key, node.keys.get(i)) > 0) i++;
 
-        if (i < node.keys.size() && key.compareTo(node.keys.get(i)) == 0) {
+        if (i < node.keys.size() && Values.compare(key, node.keys.get(i)) == 0) {
             if (node.isLeaf) {
                 return new ArrayList<>(node.values.get(i));
             }
@@ -139,9 +141,9 @@ public class BTreeIndex {
         while (leaf != null) {
             for (int i = 0; i < leaf.keys.size(); i++) {
                 Comparable k = leaf.keys.get(i);
-                if (k.compareTo(low) >= 0 && k.compareTo(high) <= 0) {
+                if (Values.compare(k, low) >= 0 && Values.compare(k, high) <= 0) {
                     result.addAll(leaf.values.get(i));
-                } else if (k.compareTo(high) > 0) {
+                } else if (Values.compare(k, high) > 0) {
                     return result;
                 }
             }
@@ -154,7 +156,7 @@ public class BTreeIndex {
     private BTreeNode findLeaf(BTreeNode node, Comparable key) {
         if (node.isLeaf) return node;
         int i = 0;
-        while (i < node.keys.size() && key.compareTo(node.keys.get(i)) > 0) i++;
+        while (i < node.keys.size() && Values.compare(key, node.keys.get(i)) > 0) i++;
         return findLeaf(node.children.get(i), key);
     }
 }

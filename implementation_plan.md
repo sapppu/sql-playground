@@ -42,6 +42,7 @@ The existing pipeline is: `Lexer` → `Parser` → `QueryPlanner` → `QueryExec
 - Add "WAL" sub-tab alongside results/plan/tokens
 - After every query execution, fetch `/api/wal`
 - Render a monospaced scrollable table: Seq | Op (color-coded: green=INSERT, red=DELETE, amber=UPDATE) | Table | Payload (JSON)
+- As-built note: op colors follow the app theme instead — teal=INSERT, red=DELETE, maroon=UPDATE — decided deliberately for visual consistency with the teal/gold/red/maroon system.
 
 ---
 
@@ -104,6 +105,7 @@ The existing pipeline is: `Lexer` → `Parser` → `QueryPlanner` → `QueryExec
 #### [MODIFY] [App.jsx](file:///home/sappu/IdeaProjects/sql-playground/frontend/src/App.jsx)
 - Fetch `/api/indexes` alongside schema
 - Show ⚡ lightning bolt next to indexed columns in schema browser
+- As-built note: indexed columns show an IDX text badge (same treatment as the PK badge) instead of the ⚡ glyph, per the frontend theme decision; IDX/plan-badge styling is shared.
 - Add `INDEX_SCAN` to `OP_COLORS` (teal/cyan)
 - Add example queries: `CREATE INDEX idx_salary ON employees (salary)`, `SELECT * FROM employees WHERE salary = 95000`
 
@@ -192,6 +194,7 @@ The existing pipeline is: `Lexer` → `Parser` → `QueryPlanner` → `QueryExec
 
 #### [MODIFY] [App.jsx](file:///home/sappu/IdeaProjects/sql-playground/frontend/src/App.jsx)
 - Transaction status bar between toolbar and editor: "Auto-commit" (grey) / "TXN #N active" (amber)
+- As-built note: the pill reads "TXN #N active" with the real transaction id, but in teal (active/healthy) rather than amber, per the color-meaning system.
 - BEGIN / COMMIT / ROLLBACK buttons
 
 ---
